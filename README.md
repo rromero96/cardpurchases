@@ -432,3 +432,6 @@ logging.level.org.hibernate=DEBUG
 | **BD vacía después de `docker-compose down`** | Usa `docker-compose down` (sin `-v`) para mantener los datos |
 
 ---
+
+## 🚀 Fase 2: Implementacion con MongoDB
+- Hacer checkout a la rama **main-mongodb** 
