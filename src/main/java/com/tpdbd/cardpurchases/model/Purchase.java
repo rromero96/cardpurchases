@@ -3,59 +3,49 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity
-@Table(name = "purchases")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "purchase_type")
+@Document(collection = "purchases")
 public abstract class Purchase {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
+    
     private String paymentVoucher;
 
-    @Column(nullable = false)
+    
     private String store;
 
-    @Column(nullable = false)
+    
     private String cuitStore;
 
-    @Column(nullable = false)
+    
     private Float amount;
 
-    @Column(nullable = false)
+    
     private Float finalAmount;
 
     // Relación muchos a uno: Muchas compras usan UNA tarjeta
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "card_id", nullable = false)
+    @DBRef
     @JsonIgnore
     private Card card;
 
     // Relación muchos a muchos: Una compra puede tener muchas promociones
-    @ManyToMany
-    @JoinTable(
-            name = "purchase_promotion",
-            joinColumns = @JoinColumn(name = "purchase_id"),
-            inverseJoinColumns = @JoinColumn(name = "promotion_id")
-    )
+    @DBRef
     @JsonIgnore
     private List<Promotion> validPromotion;
 
     // Relación uno a muchos: Una compra tiene muchas cuotas
-    @OneToMany(mappedBy = "purchase", cascade = CascadeType.ALL, orphanRemoval = true)
+    @DBRef
     @JsonIgnore
     private List<Quota> quotas;
 
-
     public Purchase() {}
-    public Long getId() { return this.id; }
-    public void setId(Long id) { this.id = id; }
+    public String getId() { return this.id; }
+    public void setId(String id) { this.id = id; }
     public String getPaymentVoucher() { return this.paymentVoucher; }
     public void setPaymentVoucher(String paymentVoucher) { this.paymentVoucher = paymentVoucher; }
     public String getStore() { return this.store; }

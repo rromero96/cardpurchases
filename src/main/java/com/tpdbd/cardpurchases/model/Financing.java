@@ -1,14 +1,11 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
-import jakarta.persistence.*;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-@Entity
-@DiscriminatorValue("FINANCING")
+import org.springframework.data.mongodb.core.mapping.*;
+
+@Document(collection = "promotions")
 public class Financing extends Promotion {
-    @Column
+    
     private Integer numberOfQuotas;
-    @Column
+    
     private Float interest;
 
     public Financing() {}

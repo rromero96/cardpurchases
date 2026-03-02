@@ -22,9 +22,9 @@ class CardpurchasesApplicationTests {
 	@Autowired
 	private MockMvc mockMvc;
 
-	private Long bankId = 1L;
-	private Long cardHolderId = 1L;
-	private Long cardId = 1L;
+	private String bankId = "1";
+	private String cardHolderId = "1";
+	private String cardId = "1";
 
 	@BeforeEach
 	void setUp() throws Exception {

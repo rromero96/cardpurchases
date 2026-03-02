@@ -32,7 +32,7 @@ public class CardService {
      * Crear una nueva tarjeta
      */
     @Transactional
-    public Card createCard(Long cardHolderId, Long bankId, String number,
+    public Card createCard(String cardHolderId, String bankId, String number,
                            String cvc, String cardholderNameInCard, LocalDate since, LocalDate expirationDate) {
 
         CardHolder cardHolder = cardHolderRepository.findById(cardHolderId)
@@ -57,7 +57,8 @@ public class CardService {
      * Obtener tarjetas emitidas hace más de 5 años
      */
     public List<Card> getCardsIssuedMoreThan5YearsAgo() {
-        return cardRepository.findCardsIssuedMoreThan5YearsAgo();
+        LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
+        return cardRepository.findCardsBySinceBefore(fiveYearsAgo);
     }
 
 }

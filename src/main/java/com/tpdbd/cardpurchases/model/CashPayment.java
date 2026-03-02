@@ -1,21 +1,14 @@
 package com.tpdbd.cardpurchases.model;
 
-import java.math.BigDecimal;
-import jakarta.persistence.Column;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
+import org.springframework.data.mongodb.core.mapping.*;
 
-@Entity
-@DiscriminatorValue("CASH")
+@Document(collection = "purchases")
 public class CashPayment extends Purchase {
 
-    @Column
+
     private Float storeDiscount;
 
-    public CashPayment() {
-        super();
-    }
-
+    public CashPayment() {}
     public Float getStoreDiscount() {
         return storeDiscount;
     }

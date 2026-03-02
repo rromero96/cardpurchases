@@ -1,14 +1,11 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
-import jakarta.persistence.*;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-@Entity
-@DiscriminatorValue("MONTHLY")
+import org.springframework.data.mongodb.core.mapping.*;
+
+@Document(collection = "purchases")
 public class MonthlyPayments extends Purchase {
-    @Column(nullable = false)
+    
     private Float interest;
-    @Column(nullable = false)
+    
     private Integer numberOfQuotas;
 
     public MonthlyPayments() {}

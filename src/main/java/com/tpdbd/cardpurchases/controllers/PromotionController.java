@@ -29,7 +29,7 @@ public class PromotionController {
      */
     @PostMapping("/discount")
     public ResponseEntity<Discount> addDiscountPromotion(
-            @RequestParam Long bankId,
+            @RequestParam String bankId,
             @RequestParam String code,
             @RequestParam String promotionTitle,
             @RequestParam String nameStore,

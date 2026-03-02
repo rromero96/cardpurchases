@@ -27,7 +27,7 @@ public class PromotionService {
      * Agregar una nueva promoción de descuento a un banco
      */
     @Transactional
-    public Discount addDiscountPromotion(Long bankId, String code, String promotionTitle,
+    public Discount addDiscountPromotion(String bankId, String code, String promotionTitle,
                                          String nameStore, String cuitStore,
                                          LocalDate validityStartDate, LocalDate validityEndDate,
                                          Float discountPercentage, Float priceCap, Boolean onlyCash) {

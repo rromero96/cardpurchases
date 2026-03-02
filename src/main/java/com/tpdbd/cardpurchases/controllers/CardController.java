@@ -28,8 +28,8 @@ public class CardController {
      */
     @PostMapping
     public ResponseEntity<Card> createCard(
-            @RequestParam Long cardHolderId,
-            @RequestParam Long bankId,
+            @RequestParam String cardHolderId,
+            @RequestParam String bankId,
             @RequestParam String number,
             @RequestParam String ccv,
             @RequestParam String cardholderNameInCard,

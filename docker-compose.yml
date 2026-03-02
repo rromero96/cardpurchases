@@ -1,17 +1,14 @@
 services:
   db:
-    image: mysql:8.0
+    image: mongo:7.0
     environment:
-      MYSQL_DATABASE: cardpurchases
-      MYSQL_USER: carduser
-      MYSQL_PASSWORD: cardpass
-      MYSQL_ROOT_PASSWORD: rootpass
+      MONGO_INITDB_DATABASE: cardpurchases
     ports:
-      - "3306:3306"
+      - "27017:27017"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mongodb_data:/data/db
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-ucarduser", "-pcardpass"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,9 +21,8 @@ services:
       db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/cardpurchases?createDatabaseIfNotExist=true&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
-      SPRING_DATASOURCE_USERNAME: carduser
-      SPRING_DATASOURCE_PASSWORD: cardpass
+      SPRING_DATA_MONGODB_URI: mongodb://db:27017/cardpurchases
+      SPRING_DATA_MONGODB_DATABASE: cardpurchases
 
 volumes:
-  mysql_data:
+  mongodb_data:

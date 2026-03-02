@@ -2,7 +2,9 @@
 
 **Trabajo Final - DISEÑO DE BASES DE DATOS - 2025**
 
-Sistema RESTful de gestión de pagos con tarjetas de crédito desarrollado con **Spring Boot 3**, **JPA/Hibernate** y **MySQL**.
+Sistema RESTful de gestión de pagos con tarjetas de crédito desarrollado con **Spring Boot 3**, **Spring Data MongoDB** y **MongoDB**.
+
+> **FASE 2 COMPLETADA**: Migración de MySQL a MongoDB (2 Marzo 2026)
 
 ---
 
@@ -21,9 +23,8 @@ Sistema integral para la gestión de:
 
 - **Java** 17+
 - **Spring Boot** 3.0
-- **Spring Data JPA**
-- **Hibernate** 6.x
-- **MySQL** 5.7+
+- **Spring Data MongoDB**
+- **MongoDB** 7.0+
 - **Maven** como gestor de dependencias
 - **JUnit 5** para testing
 - **Docker** & **Docker Compose** (opcional)
@@ -46,9 +47,9 @@ Elige la opción que prefieras:
   mvn -version
   ```
 
-- ✅ **MySQL 5.7 o superior** (en ejecución)
+- ✅ **MongoDB 7.0 o superior** (en ejecución)
   ```bash
-  mysql --version
+  mongosh --version
   ```
 
 ### Opción B: Ejecución con Docker
@@ -79,38 +80,22 @@ cd cardpurchases
 cd cardpurchases
 ```
 
-### Paso 2: Configurar MySQL
-
-La base de datos **se creará automáticamente** al iniciar la aplicación. Sin embargo, necesitas tener MySQL corriendo:
+### Paso 2: Instalar y ejecutar MongoDB
 
 ```bash
-# Iniciar MySQL
-brew services start mysql
+# Instalar MongoDB (si no está instalado)
+brew tap mongodb/brew
+brew install mongodb-community
+
+# Iniciar MongoDB
+brew services start mongodb-community
 
 # Verificar que está corriendo
-mysql -u root -p
-# (presiona Enter si no tienes contraseña)
+mongosh
+# (presiona Exit para salir)
 ```
 
-### Paso 3: Verificar y actualizar credenciales (Opcional)
-
-Si MySQL tiene contraseña, edita el archivo:
-
-📄 **`src/main/resources/application.properties`**
-
-```properties
-# Línea 9-10: Cambiar si tu usuario/contraseña es diferente
-spring.datasource.username=root        # Cambiar si es necesario
-spring.datasource.password=tu_contraseña  # Tu contraseña MySQL
-```
-
-**Default (sin cambios):**
-- Usuario: `carduser`
-- Contraseña: `cardpass`
-
-La BD `cardpurchases` **se crea automáticamente** ✅
-
-### Paso 4: Compilar el proyecto
+### Paso 3: Compilar el proyecto
 
 ```bash
 # Navega a la carpeta del proyecto
@@ -125,7 +110,7 @@ mvn clean compile
 [INFO] BUILD SUCCESS
 ```
 
-### Paso 5: Ejecutar la aplicación
+### Paso 4: Ejecutar la aplicación
 
 ```bash
 mvn spring-boot:run
@@ -158,7 +143,7 @@ colima start
 # Navega a la carpeta del proyecto
 cd cardpurchases
 
-# Levanta los contenedores (MySQL + App)
+# Levanta los contenedores (MongoDB + App)
 docker-compose up -d
 
 # Espera 15-20 segundos para que la BD esté lista
@@ -171,7 +156,7 @@ docker-compose ps
 **Resultado esperado:**
 ```
 NAME                  IMAGE               SERVICE   STATUS
-cardpurchases-db-1    mysql:8.0           db        Up (healthy)
+cardpurchases-db-1    mongo:7.0           db        Up (healthy)
 cardpurchases-app-1   cardpurchases-app   app       Up
 ```
 
@@ -190,7 +175,7 @@ curl http://localhost:8080/api/banks
 # Logs de la aplicación
 docker-compose logs -f app
 
-# Logs de MySQL
+# Logs de MongoDB
 docker-compose logs -f db
 
 # Detener seguimiento: Ctrl+C
@@ -214,10 +199,10 @@ docker-compose down -v
 
 ### Ventajas de usar Docker
 
-✅ **No necesitas instalar MySQL localmente**
+✅ **No necesitas instalar MongoDB localmente**
 ✅ **Ambiente aislado y reproducible**
 ✅ **Fácil de compartir con otros desarrolladores**
-✅ **No consumir recursos locales (MySQL detenido)**
+✅ **No consumir recursos locales**
 ✅ **Compatible con CI/CD pipelines**
 
 ---
@@ -272,7 +257,7 @@ mvn clean test -Dtest=CardpurchasesApplicationTests
 cardpurchases/
 ├── src/main/
 │   ├── java/com/tpdbd/cardpurchases/
-│   │   ├── model/           # 11 entidades JPA
+│   │   ├── model/           # 11 entidades MongoDB
 │   │   │   ├── Bank.java
 │   │   │   ├── CardHolder.java
 │   │   │   ├── Card.java
@@ -284,7 +269,7 @@ cardpurchases/
 │   │   │   ├── Financing.java
 │   │   │   ├── Quota.java
 │   │   │   └── Payment.java
-│   │   ├── repositories/    # 11 repositorios
+│   │   ├── repositories/    # 11 repositorios MongoDB
 │   │   ├── services/        # 6 servicios
 │   │   ├── controllers/     # 6 controladores (16 endpoints)
 │   │   └── CardpurchasesApplication.java
@@ -330,25 +315,24 @@ cardpurchases/
 
 ---
 
-## 🗄️ Base de Datos
+## 🗄️ Base de Datos (MongoDB)
 
 ### Creación Automática
 
 ✅ La base de datos **se crea automáticamente** al iniciar la aplicación:
 
-1. **Verifica que MySQL esté corriendo** (o que Docker esté activo)
+1. **Verifica que MongoDB esté corriendo** (o que Docker esté activo)
 2. **Ejecuta:** `mvn spring-boot:run` o `docker-compose up -d`
-3. **La BD `cardpurchases` se creará automáticamente** (junto con todas las tablas)
+3. **La BD `cardpurchases` se creará automáticamente** (junto con todas las colecciones)
 
-### Credenciales por defecto
+### Configuración por defecto
 
 ```
-Usuario: carduser
-Contraseña: cardpass
+URI: mongodb://localhost:27017/cardpurchases
 Base de datos: cardpurchases
 ```
 
-### Tablas creadas automáticamente
+### Colecciones creadas automáticamente
 
 - banks
 - cardholders
@@ -357,7 +341,6 @@ Base de datos: cardpurchases
 - promotions
 - quotas
 - payments
-- Tablas de relaciones (N:N)
 
 ---
 
@@ -400,21 +383,18 @@ Edita `application.properties`:
 server.port=8081  # Puerto personalizado
 ```
 
-### Ver queries SQL en consola
+### Cambiar URI de MongoDB
+
+Edita `application.properties`:
+```properties
+spring.data.mongodb.uri=mongodb://user:pass@host:27017/dbname
+```
+
+### Ver logs de MongoDB
 
 Ya está configurado por default:
 ```properties
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.format_sql=true
-```
-
-### Cambiar nivel de logs
-
-En `application.properties`:
-```properties
-logging.level.root=INFO
-logging.level.org.springframework=DEBUG
-logging.level.org.hibernate=DEBUG
+logging.level.org.springframework.data.mongodb=DEBUG
 ```
 
 ---
@@ -423,12 +403,10 @@ logging.level.org.hibernate=DEBUG
 
 | Problema | Solución |
 |----------|----------|
-| **`Connection refused` a MySQL** | Asegúrate que MySQL esté corriendo: `brew services start mysql` |
-| **`Access denied for user 'carduser'`** | Verifica credenciales en `application.properties` |
+| **`Connection refused` a MongoDB** | Asegúrate que MongoDB esté corriendo: `brew services start mongodb-community` |
 | **`Port 8080 already in use`** | Cambia el puerto en `application.properties` o cierra el proceso que usa el puerto |
 | **`Cannot find symbol BankController`** | Ejecuta: `mvn clean compile` |
-| **Tests fallan** | Verifica que MySQL esté corriendo y las credenciales sean correctas |
+| **Tests fallan** | Verifica que MongoDB esté corriendo y accesible en `mongodb://localhost:27017` |
 | **Docker containers no inician** | Verifica que Docker esté corriendo: `docker-compose ps` |
 | **BD vacía después de `docker-compose down`** | Usa `docker-compose down` (sin `-v`) para mantener los datos |
 
----

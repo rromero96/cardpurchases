@@ -41,7 +41,7 @@ public class PurchaseService {
      * Crear una compra al contado
      */
     @Transactional
-    public CashPayment createCashPayment(Long cardId, String store, String cuitStore,
+    public CashPayment createCashPayment(String cardId, String store, String cuitStore,
                                             Float amount, Float storeDiscount) {
 
         Card card = cardRepository.findById(cardId)
@@ -66,7 +66,7 @@ public class PurchaseService {
      * Crear una compra en cuotas
      */
     @Transactional
-    public MonthlyPayments createMonthlyPurchase(Long cardId, String store, String cuitStore,
+    public MonthlyPayments createMonthlyPurchase(String cardId, String store, String cuitStore,
                                                   Float amount, Integer numberOfQuotas,
                                                   Float interest, String paymentVoucher) {
 
@@ -93,7 +93,7 @@ public class PurchaseService {
     /**
      * Obtener información completa de una compra (incluyendo cuotas si las tiene)
      */
-    public PurchaseDetails getPurchaseDetails(Long purchaseId) {
+    public PurchaseDetails getPurchaseDetails(String purchaseId) {
         Purchase purchase = purchaseRepository.findById(purchaseId)
                 .orElseThrow(() -> new IllegalArgumentException("Compra no encontrada"));
 
@@ -118,7 +118,19 @@ public class PurchaseService {
      * Obtener local con mayor cantidad de compras
      */
     public String getStoreWithMostPurchases() {
-        return purchaseRepository.findStoreWithMostPurchases();
+        // Obtener todas las compras y agrupar por tienda
+        List<Purchase> allPurchases = purchaseRepository.findAll();
+
+        return allPurchases.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        Purchase::getStore,
+                        java.util.stream.Collectors.counting()
+                ))
+                .entrySet()
+                .stream()
+                .max(java.util.Map.Entry.comparingByValue())
+                .map(java.util.Map.Entry::getKey)
+                .orElse(null);
     }
 
     /**

@@ -3,49 +3,38 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.*;
-@Entity
-@Table(name = "payments")
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.*;
+@Document(collection = "payments")
 public class Payment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(nullable = false, unique = true)
+    private String id;
+    
     private String code;
-    @Column(nullable = false)
+    
     private String month;
-    @Column(nullable = false)
+    
     private String year;
-    @Column(nullable = false)
+    
     private LocalDate firstExpiration;
-    @Column(nullable = false)
+    
     private LocalDate secondExpiration;
-    @Column(nullable = false)
+    
     private Float surcharge;
-    @Column(nullable = false)
+    
     private Float totalPrice;
     // Relación muchos a muchos: Un pago agrupa muchas cuotas
-    @ManyToMany
-    @JoinTable(
-            name = "payment_quota",
-            joinColumns = @JoinColumn(name = "payment_id"),
-            inverseJoinColumns = @JoinColumn(name = "quota_id")
-    )
+    @DBRef
     private List<Quota> quotas;
     // Relación muchos a muchos: Un pago agrupa muchas compras al contado
-    @ManyToMany
-    @JoinTable(
-            name = "payment_cash",
-            joinColumns = @JoinColumn(name = "payment_id"),
-            inverseJoinColumns = @JoinColumn(name = "purchase_id")
-    )
+    @DBRef
     private List<CashPayment> cashPurchases;
 
     public Payment() {}
-    public Long getId() {
+    public String getId() {
         return this.id;
     }
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     public String getCode() {

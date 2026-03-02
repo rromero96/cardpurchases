@@ -2,57 +2,52 @@ package com.tpdbd.cardpurchases.model;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity
-@Table(name = "promotions")
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "promotion_type")
+@Document(collection = "promotions")
 public abstract class Promotion {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
+    
     private String code;
 
-    @Column(nullable = false)
+    
     private String promotionTitle;
 
-    @Column(nullable = false)
+    
     private String nameStore;
 
-    @Column(nullable = false)
+    
     private String cuitStore;
 
-    @Column(nullable = false)
+    
     private LocalDate validityStartDate;
 
-    @Column(nullable = false)
+    
     private LocalDate validityEndDate;
 
-    @Column
+    
     private String comments;
 
     // Relación muchos a uno: Muchas promociones pertenecen a UN banco
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bank_id", nullable = false)
+    @DBRef
     @JsonIgnore
     private Bank bank;
 
     // Relación muchos a muchos (inverso): Una promoción aplica a muchas compras
-    @ManyToMany(mappedBy = "validPromotion")
+    @DBRef
     @JsonIgnore
     private List<Purchase> purchases;
 
-
     public Promotion() {}
-    public Long getId() {
+    public String getId() {
         return this.id;
     }
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     public String getCode() {

@@ -1,46 +1,44 @@
 package com.tpdbd.cardpurchases.model;
 import java.time.LocalDate;
 import java.util.List;
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Entity
-@Table(name = "cardholders")
+@Document(collection = "cardholders")
 public class CardHolder {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false)
+    
     private String completeName;
 
-    @Column(nullable = false)
+    
     private String dni;
 
-    @Column(nullable = false)
+    
     private String cuil;
 
-    @Column(nullable = false)
+    
     private String address;
 
-    @Column(nullable = false)
+    
     private String telephone;
 
-    @Column(nullable = false)
+    
     private LocalDate entryDate;
 
     // Relación uno a muchos: Un titular tiene muchas tarjetas
-    @OneToMany(mappedBy = "cardholder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @DBRef
     @JsonIgnore
     private List<Card> cards;
 
     public CardHolder() {}
-
-    public Long getId() {
+    public String getId() {
         return this.id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

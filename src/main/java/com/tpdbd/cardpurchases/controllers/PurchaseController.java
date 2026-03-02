@@ -30,7 +30,7 @@ public class PurchaseController {
      */
     @PostMapping("/cash")
     public ResponseEntity<CashPayment> createCashPayment(
-            @RequestParam Long cardId,
+            @RequestParam String cardId,
             @RequestParam String store,
             @RequestParam String cuitStore,
             @RequestParam Float amount,
@@ -49,7 +49,7 @@ public class PurchaseController {
      */
     @PostMapping("/monthly")
     public ResponseEntity<MonthlyPayments> createMonthlyPurchase(
-            @RequestParam Long cardId,
+            @RequestParam String cardId,
             @RequestParam String store,
             @RequestParam String cuitStore,
             @RequestParam Float amount,
@@ -71,7 +71,7 @@ public class PurchaseController {
      */
     @GetMapping("/{purchaseId}")
     public ResponseEntity<PurchaseDetails> getPurchaseDetails(
-            @PathVariable Long purchaseId) {
+            @PathVariable String purchaseId) {
 
         PurchaseDetails details = purchaseService.getPurchaseDetails(purchaseId);
         return ResponseEntity.ok(details);

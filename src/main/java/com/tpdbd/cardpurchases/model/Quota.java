@@ -1,30 +1,28 @@
 package com.tpdbd.cardpurchases.model;
 import java.math.BigDecimal;
-import jakarta.persistence.*;
-@Entity
-@Table(name = "quotas")
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.*;
+@Document(collection = "quotas")
 public class Quota {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @Column(nullable = false)
+    private String id;
+    
     private Integer number;
-    @Column(nullable = false)
+    
     private Float price;
-    @Column(nullable = false)
+    
     private String month;
-    @Column(nullable = false)
+    
     private String year;
     // Relación muchos a uno: Muchas cuotas pertenecen a UNA compra
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "purchase_id", nullable = false)
+    @DBRef
     private Purchase purchase;
 
     public Quota() {}
-    public Long getId() {
+    public String getId() {
         return this.id;
     }
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
     public Integer getNumber() {

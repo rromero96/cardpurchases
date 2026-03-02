@@ -1,16 +1,13 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
-import jakarta.persistence.*;
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-@Entity
-@DiscriminatorValue("DISCOUNT")
+import org.springframework.data.mongodb.core.mapping.*;
+
+@Document(collection = "promotions")
 public class Discount extends Promotion {
-    @Column
+    
     private Float discountPercentage;
-    @Column
+    
     private Float priceCap;
-    @Column
+    
     private Boolean onlyCash;
 
     public Discount() {}
