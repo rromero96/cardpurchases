@@ -1,43 +1,35 @@
 package com.tpdbd.cardpurchases.model;
+import java.math.BigDecimal;
+import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+@Entity
+@DiscriminatorValue("DISCOUNT")
+public class Discount extends Promotion {
+    @Column
+    private Float discountPercentage;
+    @Column
+    private Float priceCap;
+    @Column
+    private Boolean onlyCash;
 
-import java.util.Date;
-
-public class Discount extends Promotion{
-
-    private float discountPercentage;
-
-    private float priceCap;
-
-    private boolean onlyCash;
-
-    public Discount(String code, String promotionTitle, String nameStore, String cuitStore, Date validityStartDate, Date validityEndDate, String comments, float discountPercentage, float priceCap, boolean onlyCash) {
-        super(code, promotionTitle, nameStore, cuitStore, validityStartDate, validityEndDate, comments);
-        this.discountPercentage = discountPercentage;
-        this.priceCap = priceCap;
-        this.onlyCash = onlyCash;
+    public Discount() {}
+    public Float getDiscountPercentage() {
+        return this.discountPercentage;
     }
-
-    public float getDiscountPercentage() {
-        return discountPercentage;
-    }
-
-    public void setDiscountPercentage(float discountPercentage) {
+    public void setDiscountPercentage(Float discountPercentage) {
         this.discountPercentage = discountPercentage;
     }
-
-    public float getPriceCap() {
-        return priceCap;
+    public Float getPriceCap() {
+        return this.priceCap;
     }
-
-    public void setPriceCap(float priceCap) {
+    public void setPriceCap(Float priceCap) {
         this.priceCap = priceCap;
     }
-
-    public boolean isOnlyCash() {
-        return onlyCash;
+    public Boolean getOnlyCash() {
+        return this.onlyCash;
     }
-
-    public void setOnlyCash(boolean onlyCash) {
+    public void setOnlyCash(Boolean onlyCash) {
         this.onlyCash = onlyCash;
     }
 }

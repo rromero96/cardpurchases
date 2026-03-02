@@ -1,32 +1,27 @@
 package com.tpdbd.cardpurchases.model;
+import java.math.BigDecimal;
+import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+@Entity
+@DiscriminatorValue("FINANCING")
+public class Financing extends Promotion {
+    @Column
+    private Integer numberOfQuotas;
+    @Column
+    private Float interest;
 
-import java.util.Date;
-
-public class Financing extends Promotion{
-
-    private int numberOfQuotas;
-
-    private float interes;
-
-    public Financing(String code, String promotionTitle, String nameStore, String cuitStore, Date validityStartDate, Date validityEndDate, String comments, int numberOfQuotas, float interes) {
-        super(code, promotionTitle, nameStore, cuitStore, validityStartDate, validityEndDate, comments);
-        this.numberOfQuotas = numberOfQuotas;
-        this.interes = interes;
+    public Financing() {}
+    public Integer getNumberOfQuotas() {
+        return this.numberOfQuotas;
     }
-
-    public int getNumberOfQuotas() {
-        return numberOfQuotas;
-    }
-
-    public void setNumberOfQuotas(int numberOfQuotas) {
+    public void setNumberOfQuotas(Integer numberOfQuotas) {
         this.numberOfQuotas = numberOfQuotas;
     }
-
-    public float getInteres() {
-        return interes;
+    public Float getInterest() {
+        return this.interest;
     }
-
-    public void setInteres(float interes) {
-        this.interes = interes;
+    public void setInterest(Float interest) {
+        this.interest = interest;
     }
 }

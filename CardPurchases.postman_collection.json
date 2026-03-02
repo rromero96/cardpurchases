@@ -1,0 +1,384 @@
+{
+  "info": {
+    "name": "Card Purchases - 11 Casos de Uso",
+    "description": "API REST para gestión de pagos con tarjetas - MySQL Version\n\n11 CASOS DE USO REQUERIDOS + CRUD BÁSICO",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "SETUP - CRUD Básico",
+      "item": [
+        {
+          "name": "1. Create Bank (Setup)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/banks?name=Banco Test&cuit=20123456789&address=Av. Test&telephone=1123456789&direction=Centro",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "banks"],
+              "query": [
+                {"key": "name", "value": "Banco Test"},
+                {"key": "cuit", "value": "20123456789"},
+                {"key": "address", "value": "Av. Test"},
+                {"key": "telephone", "value": "1123456789"},
+                {"key": "direction", "value": "Centro"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "2. Create CardHolder (Setup)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/cardholders?completeName=Juan Perez&dni=12345678&cuil=20123456789&address=Calle 1&telephone=1123456789&entryDate=2020-01-15",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "cardholders"],
+              "query": [
+                {"key": "completeName", "value": "Juan Perez"},
+                {"key": "dni", "value": "12345678"},
+                {"key": "cuil", "value": "20123456789"},
+                {"key": "address", "value": "Calle 1"},
+                {"key": "telephone", "value": "1123456789"},
+                {"key": "entryDate", "value": "2020-01-15"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "3. Create Card (Setup)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/cards?cardHolderId=1&bankId=1&number=4111111111111111&ccv=789&cardholderNameInCard=JUAN PEREZ&since=2023-01-01&expirationDate=2028-12-31",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "cards"],
+              "query": [
+                {"key": "cardHolderId", "value": "1"},
+                {"key": "bankId", "value": "1"},
+                {"key": "number", "value": "4111111111111111"},
+                {"key": "ccv", "value": "789"},
+                {"key": "cardholderNameInCard", "value": "JUAN PEREZ"},
+                {"key": "since", "value": "2023-01-01"},
+                {"key": "expirationDate", "value": "2028-12-31"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 1: Agregar promoción de descuento",
+      "item": [
+        {
+          "name": "POST /api/promotions/discount",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/promotions/discount?bankId=1&code=DESC2026&promotionTitle=Descuento Anual 15%&nameStore=SuperMercado&cuitStore=20999888777&validityStartDate=2026-01-01&validityEndDate=2026-12-31&discountPercentage=15&priceCap=5000&onlyCash=false",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "promotions", "discount"],
+              "query": [
+                {"key": "bankId", "value": "1"},
+                {"key": "code", "value": "DESC2026"},
+                {"key": "promotionTitle", "value": "Descuento Anual 15%"},
+                {"key": "nameStore", "value": "SuperMercado"},
+                {"key": "cuitStore", "value": "20999888777"},
+                {"key": "validityStartDate", "value": "2026-01-01"},
+                {"key": "validityEndDate", "value": "2026-12-31"},
+                {"key": "discountPercentage", "value": "15"},
+                {"key": "priceCap", "value": "5000"},
+                {"key": "onlyCash", "value": "false"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 2: Editar fechas de vencimiento de pago",
+      "item": [
+        {
+          "name": "PUT /api/payments/{code}/due-dates",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/payments/PAGO001/due-dates?newFirstExpiration=2026-02-15&newSecondExpiration=2026-03-15&surcharge=50.0&totalPrice=1050.0",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "payments", "PAGO001", "due-dates"],
+              "query": [
+                {"key": "newFirstExpiration", "value": "2026-02-15"},
+                {"key": "newSecondExpiration", "value": "2026-03-15"},
+                {"key": "surcharge", "value": "50.0"},
+                {"key": "totalPrice", "value": "1050.0"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 3: Generar total de pago del mes",
+      "item": [
+        {
+          "name": "GET /api/payments/month/{year}/{month}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/payments/month/2026/02",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "payments", "month", "2026", "02"]
+            }
+          }
+        },
+        {
+          "name": "Create Monthly Purchase (para generar items)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/purchases/monthly?cardId=1&store=Electrónica Plus&cuitStore=20999888777&amount=5000&numberOfQuotas=6&interest=9.0&paymentVoucher=VOUCHER_FEB_2026",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "purchases", "monthly"],
+              "query": [
+                {"key": "cardId", "value": "1"},
+                {"key": "store", "value": "Electrónica Plus"},
+                {"key": "cuitStore", "value": "20999888777"},
+                {"key": "amount", "value": "5000"},
+                {"key": "numberOfQuotas", "value": "6"},
+                {"key": "interest", "value": "9.0"},
+                {"key": "paymentVoucher", "value": "VOUCHER_FEB_2026"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 4: Obtener tarjetas antiguas (>5 años)",
+      "item": [
+        {
+          "name": "GET /api/cards/old",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/cards/old",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "cards", "old"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 5: Obtener información de compra con cuotas",
+      "item": [
+        {
+          "name": "Create Monthly Purchase (para obtener detalles)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/purchases/monthly?cardId=1&store=Electrodomésticos&cuitStore=20999888777&amount=15000&numberOfQuotas=12&interest=12.5&paymentVoucher=VOUCHER004",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "purchases", "monthly"],
+              "query": [
+                {"key": "cardId", "value": "1"},
+                {"key": "store", "value": "Electrodomésticos"},
+                {"key": "cuitStore", "value": "20999888777"},
+                {"key": "amount", "value": "15000"},
+                {"key": "numberOfQuotas", "value": "12"},
+                {"key": "interest", "value": "12.5"},
+                {"key": "paymentVoucher", "value": "VOUCHER004"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/purchases/{purchaseId}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/purchases/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "purchases", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 6: Eliminar promoción por código",
+      "item": [
+        {
+          "name": "POST /api/promotions/discount (crear para eliminar)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/promotions/discount?bankId=1&code=PROMO_DELETE&promotionTitle=Para Eliminar&nameStore=LocalTemp&cuitStore=20888777666&validityStartDate=2026-01-01&validityEndDate=2026-12-31&discountPercentage=10&priceCap=5000&onlyCash=false",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "promotions", "discount"],
+              "query": [
+                {"key": "bankId", "value": "1"},
+                {"key": "code", "value": "PROMO_DELETE"},
+                {"key": "promotionTitle", "value": "Para Eliminar"},
+                {"key": "nameStore", "value": "LocalTemp"},
+                {"key": "cuitStore", "value": "20888777666"},
+                {"key": "validityStartDate", "value": "2026-01-01"},
+                {"key": "validityEndDate", "value": "2026-12-31"},
+                {"key": "discountPercentage", "value": "10"},
+                {"key": "priceCap", "value": "5000"},
+                {"key": "onlyCash", "value": "false"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/promotions/{code}",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/promotions/PROMO_DELETE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "promotions", "PROMO_DELETE"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 7: Obtener promociones entre fechas",
+      "item": [
+        {
+          "name": "GET /api/promotions/available",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/promotions/available?cuitStore=20999888777&startDate=2025-01-01&endDate=2026-12-31",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "promotions", "available"],
+              "query": [
+                {"key": "cuitStore", "value": "20999888777"},
+                {"key": "startDate", "value": "2025-01-01"},
+                {"key": "endDate", "value": "2026-12-31"}
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 8: Top 10 titulares por gasto",
+      "item": [
+        {
+          "name": "GET /api/cardholders/top-10-spending",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/cardholders/top-10-spending",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "cardholders", "top-10-spending"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 9: Local con más compras",
+      "item": [
+        {
+          "name": "GET /api/purchases/store-most-purchases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/purchases/store-most-purchases",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "purchases", "store-most-purchases"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 10: Banco con más compras",
+      "item": [
+        {
+          "name": "GET /api/banks/most-purchases",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/banks/most-purchases",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "banks", "most-purchases"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "CASO 11: Clientes por banco",
+      "item": [
+        {
+          "name": "GET /api/banks/client-count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/banks/client-count",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "banks", "client-count"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

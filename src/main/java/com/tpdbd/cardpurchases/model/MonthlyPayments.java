@@ -1,30 +1,27 @@
 package com.tpdbd.cardpurchases.model;
-
+import java.math.BigDecimal;
+import jakarta.persistence.*;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+@Entity
+@DiscriminatorValue("MONTHLY")
 public class MonthlyPayments extends Purchase {
+    @Column(nullable = false)
+    private Float interest;
+    @Column(nullable = false)
+    private Integer numberOfQuotas;
 
-    private float interest;
-
-    private int numberOfQuotas;
-
-    public MonthlyPayments(String paymentVoucher, String store, String cuitStore, float amount, float finalAmount, float interest, int numberOfQuotas) {
-        super(paymentVoucher, store, cuitStore, amount, finalAmount);
-        this.interest = interest;
-        this.numberOfQuotas = numberOfQuotas;
+    public MonthlyPayments() {}
+    public Float getInterest() {
+        return this.interest;
     }
-
-    public float getInterest() {
-        return interest;
-    }
-
-    public void setInterest(float interest) {
+    public void setInterest(Float interest) {
         this.interest = interest;
     }
-
-    public int getNumberOfQuotas() {
-        return numberOfQuotas;
+    public Integer getNumberOfQuotas() {
+        return this.numberOfQuotas;
     }
-
-    public void setNumberOfQuotas(int numberOfQuotas) {
+    public void setNumberOfQuotas(Integer numberOfQuotas) {
         this.numberOfQuotas = numberOfQuotas;
     }
 }

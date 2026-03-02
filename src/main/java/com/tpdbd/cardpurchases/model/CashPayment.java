@@ -1,19 +1,26 @@
 package com.tpdbd.cardpurchases.model;
 
-public class CashPayment extends Purchase{
+import java.math.BigDecimal;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
-    private float storeDiscount;
+@Entity
+@DiscriminatorValue("CASH")
+public class CashPayment extends Purchase {
 
-    public CashPayment(String paymentVoucher, String store, String cuitStore, float amount, float finalAmount, float storeDiscount) {
-        super(paymentVoucher, store, cuitStore, amount, finalAmount);
-        this.storeDiscount = storeDiscount;
+    @Column
+    private Float storeDiscount;
+
+    public CashPayment() {
+        super();
     }
 
-    public float getStoreDiscount() {
+    public Float getStoreDiscount() {
         return storeDiscount;
     }
 
-    public void setStoreDiscount(float storeDiscount) {
+    public void setStoreDiscount(Float storeDiscount) {
         this.storeDiscount = storeDiscount;
     }
 }

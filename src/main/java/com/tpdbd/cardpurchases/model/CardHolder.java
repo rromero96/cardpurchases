@@ -1,32 +1,51 @@
 package com.tpdbd.cardpurchases.model;
+import java.time.LocalDate;
+import java.util.List;
+import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.util.Date;
-
+@Entity
+@Table(name = "cardholders")
 public class CardHolder {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
+    @Column(nullable = false)
     private String completeName;
 
+    @Column(nullable = false)
     private String dni;
 
+    @Column(nullable = false)
     private String cuil;
 
+    @Column(nullable = false)
     private String address;
 
+    @Column(nullable = false)
     private String telephone;
 
-    private Date entry;
+    @Column(nullable = false)
+    private LocalDate entryDate;
 
-    public CardHolder(String completeName, String dni, String cuil, String address, String telephone, Date entry) {
-        this.completeName = completeName;
-        this.dni = dni;
-        this.cuil = cuil;
-        this.address = address;
-        this.telephone = telephone;
-        this.entry = entry;
+    // Relación uno a muchos: Un titular tiene muchas tarjetas
+    @OneToMany(mappedBy = "cardholder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Card> cards;
+
+    public CardHolder() {}
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getCompleteName() {
-        return completeName;
+        return this.completeName;
     }
 
     public void setCompleteName(String completeName) {
@@ -34,7 +53,7 @@ public class CardHolder {
     }
 
     public String getDni() {
-        return dni;
+        return this.dni;
     }
 
     public void setDni(String dni) {
@@ -42,7 +61,7 @@ public class CardHolder {
     }
 
     public String getCuil() {
-        return cuil;
+        return this.cuil;
     }
 
     public void setCuil(String cuil) {
@@ -50,7 +69,7 @@ public class CardHolder {
     }
 
     public String getAddress() {
-        return address;
+        return this.address;
     }
 
     public void setAddress(String address) {
@@ -58,18 +77,26 @@ public class CardHolder {
     }
 
     public String getTelephone() {
-        return telephone;
+        return this.telephone;
     }
 
     public void setTelephone(String telephone) {
         this.telephone = telephone;
     }
 
-    public Date getEntry() {
-        return entry;
+    public LocalDate getEntryDate() {
+        return this.entryDate;
     }
 
-    public void setEntry(Date entry) {
-        this.entry = entry;
+    public void setEntryDate(LocalDate entryDate) {
+        this.entryDate = entryDate;
+    }
+
+    public List<Card> getCards() {
+        return this.cards;
+    }
+
+    public void setCards(List<Card> cards) {
+        this.cards = cards;
     }
 }
