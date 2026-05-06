@@ -1,5 +1,4 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
 import jakarta.persistence.*;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;

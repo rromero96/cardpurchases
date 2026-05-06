@@ -1,5 +1,7 @@
 package com.tpdbd.cardpurchases;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -107,9 +109,12 @@ class CardpurchasesApplicationTests {
 
 	// ====== CASO 3: Generar el total de pago de un mes dado ======
 	@Test
-	@DisplayName("Caso 3: Generar total de pago del mes")
+	@DisplayName("Caso 3: Generar total de pago del mes con cuotas y compras al contado")
 	void testGenerateMonthlyPaymentTotalUseCase() throws Exception {
-		// Crear una compra en cuotas con mes/año específicos para el mes de febrero 2026
+		String currentMonth = String.format("%02d", LocalDate.now().getMonthValue());
+		String currentYear = String.valueOf(LocalDate.now().getYear());
+
+		// Crear una compra en cuotas: genera cuotas a partir del mes actual
 		mockMvc.perform(post("/api/purchases/monthly")
 				.param("cardId", "1")
 				.param("store", "ElectrodomésticsPlus")
@@ -117,18 +122,28 @@ class CardpurchasesApplicationTests {
 				.param("amount", "3000")
 				.param("numberOfQuotas", "6")
 				.param("interest", "9.0")
-				.param("paymentVoucher", "VOUCHER_FEB_2026"))
+				.param("paymentVoucher", "VOUCHER_MONTHLY_CASO3"))
 			.andExpect(status().isCreated());
 
-		// Luego obtener el total de pago del mes
-		// Debe retornar año, mes, monto total, items de cuotas y compras al contado
-		mockMvc.perform(get("/api/payments/month/2026/02"))
+		// Crear una compra al contado para el mes actual
+		mockMvc.perform(post("/api/purchases/cash")
+				.param("cardId", "1")
+				.param("store", "TiendaContado")
+				.param("cuitStore", "20777666555")
+				.param("amount", "1500")
+				.param("storeDiscount", "0")
+				.param("purchaseMonth", currentMonth)
+				.param("purchaseYear", currentYear))
+			.andExpect(status().isCreated());
+
+		// Obtener el total del mes actual: debe incluir cuotas Y compras al contado
+		mockMvc.perform(get("/api/payments/month/" + currentYear + "/" + currentMonth))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.year").value(2026))
-			.andExpect(jsonPath("$.month").value("02"))
 			.andExpect(jsonPath("$.totalAmount").isNumber())
 			.andExpect(jsonPath("$.quotaItems").isArray())
-			.andExpect(jsonPath("$.cashPaymentItems").isArray());
+			.andExpect(jsonPath("$.quotaItems.length()").value(greaterThan(0)))
+			.andExpect(jsonPath("$.cashPaymentItems").isArray())
+			.andExpect(jsonPath("$.cashPaymentItems.length()").value(greaterThan(0)));
 	}
 
 	// ====== CASO 4: Obtener el listado de tarjetas emitidas hace más de 5 años ======
@@ -157,13 +172,18 @@ class CardpurchasesApplicationTests {
 			.andExpect(status().isCreated())
 			.andReturn();
 
-		// Luego obtener los detalles de esa compra incluyendo sus cuotas
-		// Se obtiene el ID 1 (la primera compra en el test)
-		mockMvc.perform(get("/api/purchases/{purchaseId}", "1"))
+		// Extraer el ID real de la respuesta
+		String responseBody = createResult.getResponse().getContentAsString();
+		JsonNode json = new ObjectMapper().readTree(responseBody);
+		Long purchaseId = json.get("id").asLong();
+
+		// Obtener los detalles incluyendo cuotas
+		mockMvc.perform(get("/api/purchases/{purchaseId}", purchaseId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.purchase.amount").isNumber())
 			.andExpect(jsonPath("$.purchase.store").exists())
 			.andExpect(jsonPath("$.quotas").isArray())
+			.andExpect(jsonPath("$.quotas.length()").value(12))
 			.andExpect(jsonPath("$.appliedPromotions").isArray());
 	}
 

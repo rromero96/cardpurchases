@@ -15,10 +15,10 @@ public interface DiscountRepository extends JpaRepository<Discount, Long> {
     List<Discount> findByBankId(Long bankId);
 
     // Obtener descuentos con tope máximo
-    @Query(value = "SELECT d.*" + "FROM promotions d" + "WHERE d.promotion_type = 'DISCOUNT'" + "AND d.max_discount_amount IS NOT NULL", nativeQuery = true)
+    @Query(value = "SELECT d.* FROM promotions d WHERE d.promotion_type = 'DISCOUNT' AND d.price_cap IS NOT NULL", nativeQuery = true)
     List<Discount> findDiscountsWithMaxAmount();
 
     // Obtener descuentos sin tope
-    @Query(value = "SELECT d.*" + "FROM promotions d" + "WHERE d.promotion_type = 'DISCOUNT'" + "AND d.max_discount_amount IS NULL", nativeQuery = true)
+    @Query(value = "SELECT d.* FROM promotions d WHERE d.promotion_type = 'DISCOUNT' AND d.price_cap IS NULL", nativeQuery = true)
     List<Discount> findDiscountsWithoutMaxAmount();
 }

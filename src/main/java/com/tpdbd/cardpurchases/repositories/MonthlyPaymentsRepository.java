@@ -11,18 +11,18 @@ import java.util.List;
 @Repository
 public interface MonthlyPaymentsRepository extends JpaRepository<MonthlyPayments, Long> {
 
-    // Obtener compras en cuotas de un mes
-    @Query(value = "SELECT mp.*" + "FROM purchases mp" + "WHERE mp.purchase_type = 'MONTHLY'" + "AND YEAR(mp.purchase_date) = :year" + "AND MONTH(mp.purchase_date) = :month", nativeQuery = true)
+    // Obtener compras en cuotas de un mes (via sus cuotas generadas)
+    @Query(value = "SELECT DISTINCT mp.* FROM purchases mp INNER JOIN quotas q ON mp.id = q.purchase_id WHERE mp.purchase_type = 'MONTHLY' AND q.year = :year AND q.month = :month", nativeQuery = true)
     List<MonthlyPayments> findMonthlyPaymentsByMonthAndYear(
-            @Param("year") int year,
-            @Param("month") int month
+            @Param("year") String year,
+            @Param("month") String month
     );
 
     // Obtener compras con cuotas según cantidad
-    @Query(value = "SELECT mp.*" + "FROM purchases mp" + "WHERE mp.purchase_type = 'MONTHLY'" + "AND mp.number_of_quotas = :numberOfQuotas", nativeQuery = true)
+    @Query(value = "SELECT mp.* FROM purchases mp WHERE mp.purchase_type = 'MONTHLY' AND mp.number_of_quotas = :numberOfQuotas", nativeQuery = true)
     List<MonthlyPayments> findByNumberOfQuotas(@Param("numberOfQuotas") int numberOfQuotas);
 
     // Obtener compras en cuotas con interés
-    @Query(value = "SELECT mp.*" + "FROM purchases mp" + "WHERE mp.purchase_type = 'MONTHLY'" + "AND mp.interest > 0", nativeQuery = true)
+    @Query(value = "SELECT mp.* FROM purchases mp WHERE mp.purchase_type = 'MONTHLY' AND mp.interest > 0", nativeQuery = true)
     List<MonthlyPayments> findMonthlyPaymentsWithInterest();
 }

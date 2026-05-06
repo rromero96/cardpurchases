@@ -431,7 +431,35 @@ logging.level.org.hibernate=DEBUG
 | **Docker containers no inician** | Verifica que Docker esté corriendo: `docker-compose ps` |
 | **BD vacía después de `docker-compose down`** | Usa `docker-compose down` (sin `-v`) para mantener los datos |
 
+
+## Correcciones Reentrega (11/05/2026)
+
+### MySQL — Bugs corregidos
+
+| Bug | Descripción | Archivos modificados |
+|-----|-------------|---------------------|
+| Quotas no se creaban | `createMonthlyPurchase` ahora genera N objetos `Quota` al guardar la compra | `PurchaseService.java` |
+| CashPayment no en resumen mensual | `generateMonthlyPayment` ahora incluye compras al contado del mes | `PaymentService.java`, `Purchase.java`, `CashPaymentRepository.java` |
+| ConstraintViolationException al borrar promoción | `deletePromotionByCode` limpia la join table `purchase_promotion` antes de eliminar | `PromotionService.java` |
+| `paymentVoucher` null en CashPayment | Se genera automáticamente con UUID | `PurchaseService.java` |
+| Queries SQL concatenadas sin espacios | Corregidas en DiscountRepository, FinancingRepository, MonthlyPaymentsRepository | Repositorios |
+| Columnas incorrectas en queries | `max_discount_amount` → `price_cap`, `interest_rate` → `interest` | `DiscountRepository.java`, `FinancingRepository.java` |
+| Auto-aplicación de promociones | Al crear una compra, se aplican automáticamente las promociones vigentes del banco para ese local | `PurchaseService.java` |
+
+### Nuevo campo en `purchases`
+
+Se agregaron `purchase_month` y `purchase_year` para asociar compras al contado con su mes de pago. Hibernate los agrega automáticamente (`ddl-auto=update`).
+
+### Tests: 17 tests — todos en verde
+
+```
+Tests run: 17, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
+
 ---
 
 ## 🚀 Fase 2: Implementacion con MongoDB
-- Hacer checkout a la rama **main-mongodb** 
+- Hacer checkout a la rama **main-mongodb**
+
+---

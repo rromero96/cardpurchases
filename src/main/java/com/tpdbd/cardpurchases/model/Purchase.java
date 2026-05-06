@@ -1,5 +1,4 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +29,12 @@ public abstract class Purchase {
 
     @Column(nullable = false)
     private Float finalAmount;
+
+    @Column
+    private String purchaseMonth;
+
+    @Column
+    private String purchaseYear;
 
     // Relación muchos a uno: Muchas compras usan UNA tarjeta
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,4 +77,8 @@ public abstract class Purchase {
     public void setValidPromotion(List<Promotion> validPromotion) { this.validPromotion = validPromotion; }
     public List<Quota> getQuotas() { return this.quotas; }
     public void setQuotas(List<Quota> quotas) { this.quotas = quotas; }
+    public String getPurchaseMonth() { return this.purchaseMonth; }
+    public void setPurchaseMonth(String purchaseMonth) { this.purchaseMonth = purchaseMonth; }
+    public String getPurchaseYear() { return this.purchaseYear; }
+    public void setPurchaseYear(String purchaseYear) { this.purchaseYear = purchaseYear; }
 }

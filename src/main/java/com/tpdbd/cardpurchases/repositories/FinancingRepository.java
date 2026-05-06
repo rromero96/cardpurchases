@@ -15,10 +15,10 @@ public interface FinancingRepository extends JpaRepository<Financing, Long> {
     List<Financing> findByBankId(Long bankId);
 
     // Obtener financiamientos según número de cuotas
-    @Query(value = "SELECT f.*" + "FROM promotions f" + "WHERE f.promotion_type = 'FINANCING'" + "AND f.number_of_quotas = :numberOfQuotas", nativeQuery = true)
+    @Query(value = "SELECT f.* FROM promotions f WHERE f.promotion_type = 'FINANCING' AND f.number_of_quotas = :numberOfQuotas", nativeQuery = true)
     List<Financing> findByNumberOfQuotas(@Param("numberOfQuotas") int numberOfQuotas);
 
     // Obtener financiamientos con baja tasa de interés (< 5%)
-    @Query(value = "SELECT f.*" + "FROM promotions f" + "WHERE f.promotion_type = 'FINANCING'" + "AND f.interest_rate < 5", nativeQuery = true)
+    @Query(value = "SELECT f.* FROM promotions f WHERE f.promotion_type = 'FINANCING' AND f.interest < 5", nativeQuery = true)
     List<Financing> findLowInterestRateFinancings();
 }

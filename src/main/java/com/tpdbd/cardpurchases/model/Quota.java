@@ -1,6 +1,6 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "quotas")
 public class Quota {
@@ -18,6 +18,7 @@ public class Quota {
     // Relación muchos a uno: Muchas cuotas pertenecen a UNA compra
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_id", nullable = false)
+    @JsonIgnore
     private Purchase purchase;
 
     public Quota() {}

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,12 +17,15 @@ public class PromotionService {
     private final PromotionRepository promotionRepository;
     private final DiscountRepository discountRepository;
     private final BankRepository bankRepository;
+    private final PurchaseRepository purchaseRepository;
 
     @Autowired
-    public PromotionService(PromotionRepository promotionRepository, DiscountRepository discountRepository, BankRepository bankRepository) {
+    public PromotionService(PromotionRepository promotionRepository, DiscountRepository discountRepository,
+                            BankRepository bankRepository, PurchaseRepository purchaseRepository) {
         this.promotionRepository = promotionRepository;
         this.discountRepository = discountRepository;
         this.bankRepository = bankRepository;
+        this.purchaseRepository = purchaseRepository;
     }
     /**
      * Agregar una nueva promoción de descuento a un banco
@@ -67,7 +71,14 @@ public class PromotionService {
         Promotion promotion = promotionRepository.findByCode(code)
                 .orElseThrow(() -> new IllegalArgumentException("Promoción no encontrada"));
 
-        promotionRepository.deleteById(promotion.getId());
+        // Desligar la promoción de todas las compras que la tienen para evitar FK violation
+        List<Purchase> affected = new ArrayList<>(promotion.getPurchases());
+        for (Purchase purchase : affected) {
+            purchase.getValidPromotion().remove(promotion);
+            purchaseRepository.save(purchase);
+        }
+
+        promotionRepository.delete(promotion);
     }
 
 }

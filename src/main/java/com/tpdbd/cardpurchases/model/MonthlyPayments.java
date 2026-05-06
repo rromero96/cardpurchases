@@ -1,14 +1,13 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
 import jakarta.persistence.*;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("MONTHLY")
 public class MonthlyPayments extends Purchase {
-    @Column(nullable = false)
+    @Column
     private Float interest;
-    @Column(nullable = false)
+    @Column
     private Integer numberOfQuotas;
 
     public MonthlyPayments() {}

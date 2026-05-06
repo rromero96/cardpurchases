@@ -7,10 +7,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class PurchaseService {
@@ -42,7 +42,8 @@ public class PurchaseService {
      */
     @Transactional
     public CashPayment createCashPayment(Long cardId, String store, String cuitStore,
-                                            Float amount, Float storeDiscount) {
+                                            Float amount, Float storeDiscount,
+                                            String purchaseMonth, String purchaseYear) {
 
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new IllegalArgumentException("Tarjeta no encontrada"));
@@ -53,11 +54,19 @@ public class PurchaseService {
         purchase.setCuitStore(cuitStore);
         purchase.setAmount(amount);
         purchase.setStoreDiscount(storeDiscount);
+        purchase.setPaymentVoucher(UUID.randomUUID().toString());
 
-        // Calcular monto final: inicial - descuento
+        LocalDate now = LocalDate.now();
+        purchase.setPurchaseMonth(purchaseMonth != null ? purchaseMonth : String.format("%02d", now.getMonthValue()));
+        purchase.setPurchaseYear(purchaseYear != null ? purchaseYear : String.valueOf(now.getYear()));
+
         Float finalAmount = amount - (amount * storeDiscount / 100);
         purchase.setFinalAmount(finalAmount);
-        purchase.setValidPromotion(new ArrayList<>());
+
+        // Aplicar promociones vigentes del banco de la tarjeta para este local
+        List<Promotion> promos = promotionRepository.findAvailablePromotionsByStoreBetweenDates(
+                cuitStore, now, now);
+        purchase.setValidPromotion(promos != null ? promos : new ArrayList<>());
 
         return cashPurchaseRepository.save(purchase);
     }
@@ -80,14 +89,38 @@ public class PurchaseService {
         purchase.setAmount(amount);
         purchase.setNumberOfQuotas(numberOfQuotas);
         purchase.setInterest(interest);
-        purchase.setPaymentVoucher(paymentVoucher);
-        // Calcular monto final: inicial + interés
+        purchase.setPaymentVoucher(paymentVoucher != null ? paymentVoucher : UUID.randomUUID().toString());
+
         Float finalAmount = amount + (amount * interest / 100);
         purchase.setFinalAmount(finalAmount);
-        purchase.setQuotas(new ArrayList<>());
-        purchase.setValidPromotion(new ArrayList<>());
 
-        return monthlyPaymentsRepository.save(purchase);
+        LocalDate now = LocalDate.now();
+        purchase.setPurchaseMonth(String.format("%02d", now.getMonthValue()));
+        purchase.setPurchaseYear(String.valueOf(now.getYear()));
+
+        // Aplicar promociones vigentes del banco de la tarjeta para este local
+        List<Promotion> promos = promotionRepository.findAvailablePromotionsByStoreBetweenDates(
+                cuitStore, now, now);
+        purchase.setValidPromotion(promos != null ? promos : new ArrayList<>());
+        purchase.setQuotas(new ArrayList<>());
+
+        MonthlyPayments saved = monthlyPaymentsRepository.save(purchase);
+
+        // Generar cuotas
+        float quotaPrice = finalAmount / numberOfQuotas;
+        LocalDate quotaDate = now;
+        for (int i = 1; i <= numberOfQuotas; i++) {
+            Quota quota = new Quota();
+            quota.setNumber(i);
+            quota.setPrice(quotaPrice);
+            quota.setMonth(String.format("%02d", quotaDate.getMonthValue()));
+            quota.setYear(String.valueOf(quotaDate.getYear()));
+            quota.setPurchase(saved);
+            quotaRepository.save(quota);
+            quotaDate = quotaDate.plusMonths(1);
+        }
+
+        return saved;
     }
 
     /**

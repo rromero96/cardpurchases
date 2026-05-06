@@ -10,7 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @RestController
@@ -23,6 +22,26 @@ public class PaymentController {
     public PaymentController(PaymentService paymentService) {
         this.paymentService = paymentService;
     }
+    /**
+     * POST /api/payments
+     * Crear un nuevo pago
+     */
+    @PostMapping
+    public ResponseEntity<Payment> createPayment(
+            @RequestParam String code,
+            @RequestParam String month,
+            @RequestParam String year,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate firstExpiration,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate secondExpiration,
+            @RequestParam Float surcharge,
+            @RequestParam Float totalPrice) {
+
+        Payment payment = paymentService.createPayment(
+                code, month, year, firstExpiration, secondExpiration, surcharge, totalPrice
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(payment);
+    }
+
     /**
      * PUT /api/payments/{code}/due-dates
      * Editar las fechas de vencimiento de un pago

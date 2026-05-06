@@ -28,6 +28,26 @@ public class PaymentService {
         this.cardRepository = cardRepository;
     }
     /**
+     * Crear un nuevo pago
+     */
+    @Transactional
+    public Payment createPayment(String code, String month, String year,
+                                 LocalDate firstExpiration, LocalDate secondExpiration,
+                                 Float surcharge, Float totalPrice) {
+        Payment payment = new Payment();
+        payment.setCode(code);
+        payment.setMonth(month);
+        payment.setYear(year);
+        payment.setFirstExpiration(firstExpiration);
+        payment.setSecondExpiration(secondExpiration);
+        payment.setSurcharge(surcharge);
+        payment.setTotalPrice(totalPrice);
+        payment.setQuotas(new ArrayList<>());
+        payment.setCashPayments(new ArrayList<>());
+        return paymentRepository.save(payment);
+    }
+
+    /**
      * Editar las fechas de vencimiento de un pago
      */
     @Transactional
@@ -52,16 +72,21 @@ public class PaymentService {
      */
     public PaymentDetails generateMonthlyPayment(int year, String month) {
         PaymentDetails details = new PaymentDetails();
-
-        // Obtener cuotas del mes
-        List<Quota> quotas = quotaRepository.findQuotasByMonthAndYear(String.valueOf(year), month);
-
         BigDecimal totalAmount = BigDecimal.ZERO;
 
-        // Sumar cuotas
+        // Sumar cuotas del mes
+        List<Quota> quotas = quotaRepository.findQuotasByMonthAndYear(String.valueOf(year), month);
         for (Quota quota : quotas) {
             totalAmount = totalAmount.add(BigDecimal.valueOf(quota.getPrice()));
             details.addQuotaItem(quota);
+        }
+
+        // Sumar compras al contado del mes
+        List<CashPayment> cashPurchases = cashPurchaseRepository.findByPurchaseYearAndPurchaseMonth(
+                String.valueOf(year), month);
+        for (CashPayment cp : cashPurchases) {
+            totalAmount = totalAmount.add(BigDecimal.valueOf(cp.getFinalAmount()));
+            details.addCashPaymentItem(cp);
         }
 
         details.setTotalAmount(totalAmount);
