@@ -83,6 +83,28 @@ class CardpurchasesApplicationTests {
 			.andExpect(jsonPath("$.discountPercentage").value(15.0));
 	}
 
+	// ====== CASO 1b: Agregar una nueva promoción de tipo financiación a un banco dado ======
+	@Test
+	@DisplayName("Caso 1b: Agregar promoción de financiación a banco")
+	void testAddFinancingPromotionToBankUseCase() throws Exception {
+		mockMvc.perform(post("/api/promotions/financing")
+				.param("bankId", "1")
+				.param("code", "FIN2026")
+				.param("promotionTitle", "Financiación 6 cuotas")
+				.param("nameStore", "TiendaFinanciada")
+				.param("cuitStore", "20111222333")
+				.param("validityStartDate", "2026-01-01")
+				.param("validityEndDate", "2026-12-31")
+				.param("numberOfQuotas", "6")
+				.param("interest", "5.0"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.id").isNumber())
+			.andExpect(jsonPath("$.code").value("FIN2026"))
+			.andExpect(jsonPath("$.promotionTitle").value("Financiación 6 cuotas"))
+			.andExpect(jsonPath("$.numberOfQuotas").value(6))
+			.andExpect(jsonPath("$.interest").value(5.0));
+	}
+
 	// ====== CASO 2: Editar las fechas de vencimiento de un pago con cierto código ======
 	@Test
 	@DisplayName("Caso 2: Editar fechas de vencimiento de pago")

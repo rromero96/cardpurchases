@@ -16,14 +16,17 @@ public class PromotionService {
 
     private final PromotionRepository promotionRepository;
     private final DiscountRepository discountRepository;
+    private final FinancingRepository financingRepository;
     private final BankRepository bankRepository;
     private final PurchaseRepository purchaseRepository;
 
     @Autowired
     public PromotionService(PromotionRepository promotionRepository, DiscountRepository discountRepository,
-                            BankRepository bankRepository, PurchaseRepository purchaseRepository) {
+                            FinancingRepository financingRepository, BankRepository bankRepository,
+                            PurchaseRepository purchaseRepository) {
         this.promotionRepository = promotionRepository;
         this.discountRepository = discountRepository;
+        this.financingRepository = financingRepository;
         this.bankRepository = bankRepository;
         this.purchaseRepository = purchaseRepository;
     }
@@ -54,6 +57,29 @@ public class PromotionService {
         discount.setOnlyCash(onlyCash);
 
         return discountRepository.save(discount);
+    }
+
+    @Transactional
+    public Financing addFinancingPromotion(Long bankId, String code, String promotionTitle,
+                                           String nameStore, String cuitStore,
+                                           LocalDate validityStartDate, LocalDate validityEndDate,
+                                           Integer numberOfQuotas, Float interest) {
+
+        Bank bank = bankRepository.findById(bankId)
+                .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
+
+        Financing financing = new Financing();
+        financing.setCode(code);
+        financing.setPromotionTitle(promotionTitle);
+        financing.setNameStore(nameStore);
+        financing.setCuitStore(cuitStore);
+        financing.setValidityStartDate(validityStartDate);
+        financing.setValidityEndDate(validityEndDate);
+        financing.setBank(bank);
+        financing.setNumberOfQuotas(numberOfQuotas);
+        financing.setInterest(interest);
+
+        return financingRepository.save(financing);
     }
 
     /**

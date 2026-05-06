@@ -253,6 +253,7 @@ mvn clean test -Dtest=CardpurchasesApplicationTests
 | # | Caso de Uso | Endpoint |
 |---|------------|----------|
 | 1 | Agregar promoción de descuento | `POST /api/promotions/discount` |
+| — | Agregar promoción de financiación | `POST /api/promotions/financing` |
 | 2 | Editar fechas de pago | `PUT /api/payments/{code}/due-dates` |
 | 3 | Generar total de pago del mes | `GET /api/payments/month/{year}/{month}` |
 | 4 | Obtener tarjetas >5 años | `GET /api/cards/old` |
@@ -319,8 +320,9 @@ cardpurchases/
 - `GET /api/purchases/{id}` - Detalles de compra
 - `GET /api/purchases/store-most-purchases` - Local con más compras
 
-### Promotions (3 endpoints requeridos)
-- `POST /api/promotions/discount` - Crear promoción
+### Promotions (4 endpoints)
+- `POST /api/promotions/discount` - Crear promoción de descuento
+- `POST /api/promotions/financing` - Crear promoción de financiación en cuotas
 - `DELETE /api/promotions/{code}` - Eliminar promoción
 - `GET /api/promotions/available` - Promociones disponibles
 

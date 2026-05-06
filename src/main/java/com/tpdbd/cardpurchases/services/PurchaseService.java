@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PurchaseService {
@@ -63,10 +64,12 @@ public class PurchaseService {
         Float finalAmount = amount - (amount * storeDiscount / 100);
         purchase.setFinalAmount(finalAmount);
 
-        // Aplicar promociones vigentes del banco de la tarjeta para este local
-        List<Promotion> promos = promotionRepository.findAvailablePromotionsByStoreBetweenDates(
-                cuitStore, now, now);
-        purchase.setValidPromotion(promos != null ? promos : new ArrayList<>());
+        // Solo aplican Discounts al contado — Financing es exclusiva de compras en cuotas
+        List<Promotion> allPromos = promotionRepository.findAvailablePromotionsByStoreBetweenDates(cuitStore, now, now);
+        List<Promotion> applicable = allPromos != null
+                ? allPromos.stream().filter(p -> !(p instanceof Financing)).collect(Collectors.toList())
+                : new ArrayList<>();
+        purchase.setValidPromotion(applicable);
 
         return cashPurchaseRepository.save(purchase);
     }
@@ -98,10 +101,19 @@ public class PurchaseService {
         purchase.setPurchaseMonth(String.format("%02d", now.getMonthValue()));
         purchase.setPurchaseYear(String.valueOf(now.getYear()));
 
-        // Aplicar promociones vigentes del banco de la tarjeta para este local
-        List<Promotion> promos = promotionRepository.findAvailablePromotionsByStoreBetweenDates(
-                cuitStore, now, now);
-        purchase.setValidPromotion(promos != null ? promos : new ArrayList<>());
+        // Discounts con onlyCash=false + máximo una Financing
+        List<Promotion> allPromos2 = promotionRepository.findAvailablePromotionsByStoreBetweenDates(cuitStore, now, now);
+        List<Promotion> applicable2 = new ArrayList<>();
+        if (allPromos2 != null) {
+            allPromos2.stream()
+                    .filter(p -> p instanceof Discount && !((Discount) p).getOnlyCash())
+                    .forEach(applicable2::add);
+            allPromos2.stream()
+                    .filter(p -> p instanceof Financing)
+                    .findFirst()
+                    .ifPresent(applicable2::add);
+        }
+        purchase.setValidPromotion(applicable2);
         purchase.setQuotas(new ArrayList<>());
 
         MonthlyPayments saved = monthlyPaymentsRepository.save(purchase);
