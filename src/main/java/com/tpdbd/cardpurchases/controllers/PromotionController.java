@@ -1,6 +1,7 @@
 package com.tpdbd.cardpurchases.controllers;
 
 import com.tpdbd.cardpurchases.model.Discount;
+import com.tpdbd.cardpurchases.model.Financing;
 import com.tpdbd.cardpurchases.model.Promotion;
 import com.tpdbd.cardpurchases.services.PromotionService;
 
@@ -47,6 +48,30 @@ public class PromotionController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(discount);
+    }
+
+    /**
+     * POST /api/promotions/financing
+     * Agregar una nueva promoción de tipo financiación en cuotas
+     */
+    @PostMapping("/financing")
+    public ResponseEntity<Financing> addFinancingPromotion(
+            @RequestParam String bankId,
+            @RequestParam String code,
+            @RequestParam String promotionTitle,
+            @RequestParam String nameStore,
+            @RequestParam String cuitStore,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate validityStartDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate validityEndDate,
+            @RequestParam Integer numberOfQuotas,
+            @RequestParam Float interest) {
+
+        Financing financing = promotionService.addFinancingPromotion(
+                bankId, code, promotionTitle, nameStore, cuitStore,
+                validityStartDate, validityEndDate, numberOfQuotas, interest
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(financing);
     }
 
     /**

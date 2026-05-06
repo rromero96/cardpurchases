@@ -1,6 +1,5 @@
 package com.tpdbd.cardpurchases.model;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.*;
@@ -38,10 +37,6 @@ public abstract class Promotion {
     @JsonIgnore
     private Bank bank;
 
-    // Relación muchos a muchos (inverso): Una promoción aplica a muchas compras
-    @DBRef
-    @JsonIgnore
-    private List<Purchase> purchases;
 
     public Promotion() {}
     public String getId() {
@@ -98,10 +93,5 @@ public abstract class Promotion {
     public void setBank(Bank bank) {
         this.bank = bank;
     }
-    public List<Purchase> getPurchases() {
-        return this.purchases;
-    }
-    public void setPurchases(List<Purchase> purchases) {
-        this.purchases = purchases;
-    }
+
 }

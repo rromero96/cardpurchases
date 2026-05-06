@@ -1,11 +1,15 @@
 package com.tpdbd.cardpurchases.services;
 
 import com.tpdbd.cardpurchases.model.Bank;
-import com.tpdbd.cardpurchases.model.Card;
 import com.tpdbd.cardpurchases.repositories.BankRepository;
-import com.tpdbd.cardpurchases.repositories.CardRepository;
 
+import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,16 +19,14 @@ import java.util.*;
 public class BankService {
 
     private final BankRepository bankRepository;
-    private final CardRepository cardRepository;
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public BankService(BankRepository bankRepository, CardRepository cardRepository) {
+    public BankService(BankRepository bankRepository, MongoTemplate mongoTemplate) {
         this.bankRepository = bankRepository;
-        this.cardRepository = cardRepository;
+        this.mongoTemplate = mongoTemplate;
     }
-    /**
-     * Crear un nuevo banco
-     */
+
     @Transactional
     public Bank createBank(String name, String cuit, String address, String telephone, String direction) {
         Bank bank = new Bank();
@@ -33,54 +35,50 @@ public class BankService {
         bank.setAddress(address);
         bank.setTelephone(telephone);
         bank.setDirection(direction);
-        bank.setCards(new ArrayList<>());
-        bank.setPromotions(new ArrayList<>());
-
         return bankRepository.save(bank);
     }
 
     /**
-     * Obtener banco con mayor cantidad de compras
+     * Obtener banco con mayor cantidad de compras usando aggregation pipeline en MongoDB.
+     * Joins purchases → cards → agrupa por bank.$id → ordena desc → toma 1.
      */
     public Bank getBankWithMostPurchases() {
-        // Obtener todas las tarjetas y agrupar por banco
-        List<Card> allCards = cardRepository.findAll();
+        Aggregation agg = Aggregation.newAggregation(
+            Aggregation.lookup("cards", "card.$id", "_id", "cardDoc"),
+            Aggregation.unwind("cardDoc"),
+            Aggregation.group("cardDoc.bank.$id").count().as("purchaseCount"),
+            Aggregation.sort(Sort.Direction.DESC, "purchaseCount"),
+            Aggregation.limit(1)
+        );
 
-        return allCards.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        Card::getBank,
-                        java.util.stream.Collectors.counting()
-                ))
-                .entrySet()
-                .stream()
-                .max(java.util.Map.Entry.comparingByValue())
-                .map(java.util.Map.Entry::getKey)
-                .orElseThrow(() -> new IllegalArgumentException("No hay bancos registrados"));
+        AggregationResults<Document> results = mongoTemplate.aggregate(agg, "purchases", Document.class);
+        Document result = results.getUniqueMappedResult();
+        if (result == null) {
+            throw new IllegalArgumentException("No hay bancos registrados");
+        }
+        String bankId = result.get("_id").toString();
+        return bankRepository.findById(bankId)
+                .orElseThrow(() -> new IllegalArgumentException("Banco no encontrado"));
     }
 
     /**
-     * Obtener número de clientes de cada banco
+     * Obtener número de clientes de cada banco usando aggregation MongoDB.
+     * Por cada banco, cuenta cardholders únicos de sus tarjetas.
      */
     public Map<String, Long> getClientCountByBank() {
         Map<String, Long> result = new HashMap<>();
+        List<Bank> banks = bankRepository.findAll();
 
-        // Obtener todas las tarjetas
-        List<Card> allCards = cardRepository.findAll();
-
-        // Agrupar por banco y contar cardholders únicos
-        allCards.stream()
-                .collect(java.util.stream.Collectors.groupingBy(
-                        Card::getBank,
-                        java.util.stream.Collectors.mapping(
-                                card -> card.getCardholder(),
-                                java.util.stream.Collectors.toSet()
-                        )
-                ))
-                .forEach((bank, cardholders) -> {
-                    result.put(bank.getName(), (long) cardholders.size());
-                });
+        for (Bank bank : banks) {
+            Aggregation agg = Aggregation.newAggregation(
+                Aggregation.match(Criteria.where("bank.$id").is(new ObjectId(bank.getId()))),
+                Aggregation.group("cardholder.$id")
+            );
+            long count = mongoTemplate.aggregate(agg, "cards", Document.class)
+                    .getMappedResults().size();
+            result.put(bank.getName(), count);
+        }
 
         return result;
     }
-
 }

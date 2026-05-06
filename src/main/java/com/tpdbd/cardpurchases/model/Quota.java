@@ -1,7 +1,7 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Document(collection = "quotas")
 public class Quota {
     @Id
@@ -16,6 +16,7 @@ public class Quota {
     private String year;
     // Relación muchos a uno: Muchas cuotas pertenecen a UNA compra
     @DBRef
+    @JsonIgnore
     private Purchase purchase;
 
     public Quota() {}

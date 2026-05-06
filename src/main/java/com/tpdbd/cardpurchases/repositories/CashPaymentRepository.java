@@ -3,7 +3,6 @@ package com.tpdbd.cardpurchases.repositories;
 import com.tpdbd.cardpurchases.model.CashPayment;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,8 +11,7 @@ import java.util.List;
 public interface CashPaymentRepository extends MongoRepository<CashPayment, String> {
 
     // Obtener compras al contado de un mes y año
-    @Query("{ 'purchaseType': 'CASH', 'month': ?0, 'year': ?1 }")
-    List<CashPayment> findCashPaymentsByMonthAndYear(@Param("year") String year, @Param("month") String month);
+    List<CashPayment> findByPurchaseYearAndPurchaseMonth(String purchaseYear, String purchaseMonth);
 
     // Obtener compras al contado con descuento
     @Query("{ 'purchaseType': 'CASH', 'storeDiscount': { $gt: 0 } }")

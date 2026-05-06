@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -34,10 +33,12 @@ public class PurchaseController {
             @RequestParam String store,
             @RequestParam String cuitStore,
             @RequestParam Float amount,
-            @RequestParam Float storeDiscount) {
+            @RequestParam Float storeDiscount,
+            @RequestParam(required = false) String purchaseMonth,
+            @RequestParam(required = false) String purchaseYear) {
 
         CashPayment purchase = purchaseService.createCashPayment(
-                cardId, store, cuitStore, amount, storeDiscount
+                cardId, store, cuitStore, amount, storeDiscount, purchaseMonth, purchaseYear
         );
 
         return ResponseEntity.status(HttpStatus.CREATED).body(purchase);

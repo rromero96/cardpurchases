@@ -238,6 +238,7 @@ mvn clean test -Dtest=CardpurchasesApplicationTests
 | # | Caso de Uso | Endpoint |
 |---|------------|----------|
 | 1 | Agregar promoción de descuento | `POST /api/promotions/discount` |
+| — | Agregar promoción de financiación | `POST /api/promotions/financing` |
 | 2 | Editar fechas de pago | `PUT /api/payments/{code}/due-dates` |
 | 3 | Generar total de pago del mes | `GET /api/payments/month/{year}/{month}` |
 | 4 | Obtener tarjetas >5 años | `GET /api/cards/old` |
@@ -304,8 +305,9 @@ cardpurchases/
 - `GET /api/purchases/{id}` - Detalles de compra
 - `GET /api/purchases/store-most-purchases` - Local con más compras
 
-### Promotions (3 endpoints requeridos)
-- `POST /api/promotions/discount` - Crear promoción
+### Promotions (4 endpoints)
+- `POST /api/promotions/discount` - Crear promoción de descuento
+- `POST /api/promotions/financing` - Crear promoción de financiación en cuotas
 - `DELETE /api/promotions/{code}` - Eliminar promoción
 - `GET /api/promotions/available` - Promociones disponibles
 
@@ -409,4 +411,34 @@ logging.level.org.springframework.data.mongodb=DEBUG
 | **Tests fallan** | Verifica que MongoDB esté corriendo y accesible en `mongodb://localhost:27017` |
 | **Docker containers no inician** | Verifica que Docker esté corriendo: `docker-compose ps` |
 | **BD vacía después de `docker-compose down`** | Usa `docker-compose down` (sin `-v`) para mantener los datos |
+
+---
+
+## Correcciones Reentrega (11/05/2026)
+
+### MongoDB — Bugs corregidos
+
+| Bug | Descripción | Archivos modificados |
+|-----|-------------|---------------------|
+| Quotas no se creaban | `createMonthlyPurchase` genera N objetos `Quota` y actualiza la lista @DBRef en el documento | `PurchaseService.java` |
+| CashPayment no en resumen mensual | `generateMonthlyPayment` incluye compras al contado del mes | `PaymentService.java`, `Purchase.java` |
+| @DBRef huérfanos al borrar promoción | `deletePromotionByCode` limpia referencias en purchases antes de borrar | `PromotionService.java`, `PurchaseRepository.java` |
+| `getBankWithMostPurchases` Java-side | Reemplazado por MongoDB Aggregation pipeline (lookup purchases→cards→group by bank) | `BankService.java` |
+| `getClientCountByBank` Java-side | Reemplazado por Aggregation con `Criteria.where("bank.$id")` | `BankService.java` |
+| `getStoreWithMostPurchases` Java-side | Reemplazado por MongoDB Aggregation pipeline | `PurchaseService.java` |
+| `getPurchaseDetails` no retornaba cuotas | Usa `purchase.getQuotas()` directamente (ya resueltos por @DBRef al cargar) | `PurchaseService.java` |
+| `paymentVoucher` null en CashPayment | Se genera automáticamente con UUID | `PurchaseService.java` |
+| Auto-aplicación de promociones | Al crear una compra, se aplican promociones vigentes del banco para ese local | `PurchaseService.java` |
+| Imports no usados | Eliminados imports de `BigDecimal` en modelos que no lo usan | Modelos |
+
+### Nuevo campo en documentos `purchases`
+
+Se agregaron `purchaseMonth` y `purchaseYear` (MongoDB es schemaless, no requiere migración).
+
+### Tests: 17 tests — todos en verde
+
+```
+Tests run: 17, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
+```
 

@@ -1,10 +1,6 @@
 package com.tpdbd.cardpurchases.model;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Document(collection = "banks")
 public class Bank {
@@ -15,14 +11,6 @@ public class Bank {
     private String address;
     private String telephone;
     private String direction;
-    // Relación uno a muchos: Un banco tiene muchas tarjetas
-    @DBRef
-    @JsonIgnore
-    private List<Card> cards;
-    // Relación uno a muchos: Un banco tiene muchas promociones
-    @DBRef
-    @JsonIgnore
-    private List<Promotion> promotions;
 
     public Bank() {}
     public String getId() {
@@ -62,16 +50,4 @@ public class Bank {
         this.direction = direction;
     }
 
-    public List<Card> getCards() {
-        return this.cards;
-    }
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
-    }
-    public List<Promotion> getPromotions() {
-        return this.promotions;
-    }
-    public void setPromotions(List<Promotion> promotions) {
-        this.promotions = promotions;
-    }
 }

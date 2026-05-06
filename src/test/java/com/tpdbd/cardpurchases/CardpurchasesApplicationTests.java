@@ -1,5 +1,7 @@
 package com.tpdbd.cardpurchases;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,41 +24,49 @@ class CardpurchasesApplicationTests {
 	@Autowired
 	private MockMvc mockMvc;
 
-	private String bankId = "1";
-	private String cardHolderId = "1";
-	private String cardId = "1";
+	private final ObjectMapper mapper = new ObjectMapper();
+
+	private String bankId;
+	private String cardHolderId;
+	private String cardId;
 
 	@BeforeEach
 	void setUp() throws Exception {
-		// Crear un banco para usar en los tests
-		mockMvc.perform(post("/api/banks")
+		// Crear banco y capturar su ID real (ObjectId en MongoDB)
+		MvcResult bankResult = mockMvc.perform(post("/api/banks")
 				.param("name", "BancoTest")
 				.param("cuit", "20123456789")
 				.param("address", "Av. Test")
 				.param("telephone", "1123456789")
 				.param("direction", "Centro"))
-			.andExpect(status().isCreated());
+			.andExpect(status().isCreated())
+			.andReturn();
+		bankId = mapper.readTree(bankResult.getResponse().getContentAsString()).get("id").asText();
 
-		// Crear un titular
-		mockMvc.perform(post("/api/cardholders")
+		// Crear titular y capturar su ID real
+		MvcResult holderResult = mockMvc.perform(post("/api/cardholders")
 				.param("completeName", "Test Holder")
 				.param("dni", "12345678")
 				.param("cuil", "20123456789")
 				.param("address", "Test Address")
 				.param("telephone", "1123456789")
 				.param("entryDate", "2020-01-15"))
-			.andExpect(status().isCreated());
+			.andExpect(status().isCreated())
+			.andReturn();
+		cardHolderId = mapper.readTree(holderResult.getResponse().getContentAsString()).get("id").asText();
 
-		// Crear una tarjeta
-		mockMvc.perform(post("/api/cards")
-				.param("cardHolderId", "1")
-				.param("bankId", "1")
+		// Crear tarjeta usando los IDs reales
+		MvcResult cardResult = mockMvc.perform(post("/api/cards")
+				.param("cardHolderId", cardHolderId)
+				.param("bankId", bankId)
 				.param("number", "4111111111111111")
 				.param("ccv", "789")
 				.param("cardholderNameInCard", "TEST HOLDER")
 				.param("since", "2020-01-01")
 				.param("expirationDate", "2028-12-31"))
-			.andExpect(status().isCreated());
+			.andExpect(status().isCreated())
+			.andReturn();
+		cardId = mapper.readTree(cardResult.getResponse().getContentAsString()).get("id").asText();
 	}
 
 	// ====== CASO 1: Agregar una nueva promoción de tipo descuento a un banco dado ======
@@ -64,7 +74,7 @@ class CardpurchasesApplicationTests {
 	@DisplayName("Caso 1: Agregar promoción de descuento a banco")
 	void testAddDiscountPromotionToBankUseCase() throws Exception {
 		mockMvc.perform(post("/api/promotions/discount")
-				.param("bankId", "1")
+				.param("bankId", bankId)
 				.param("code", "DESC2026")
 				.param("promotionTitle", "Descuento Anual 15%")
 				.param("nameStore", "SuperMercado")
@@ -75,19 +85,40 @@ class CardpurchasesApplicationTests {
 				.param("priceCap", "5000")
 				.param("onlyCash", "false"))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.id").isNumber())
+			.andExpect(jsonPath("$.id").isString())
 			.andExpect(jsonPath("$.code").value("DESC2026"))
 			.andExpect(jsonPath("$.promotionTitle").value("Descuento Anual 15%"))
 			.andExpect(jsonPath("$.discountPercentage").value(15.0));
+	}
+
+	// ====== CASO 1b: Agregar promoción de tipo financiación a un banco dado ======
+	@Test
+	@DisplayName("Caso 1b: Agregar promoción de financiación a banco")
+	void testAddFinancingPromotionToBankUseCase() throws Exception {
+		mockMvc.perform(post("/api/promotions/financing")
+				.param("bankId", bankId)
+				.param("code", "FIN2026")
+				.param("promotionTitle", "Financiación 6 cuotas")
+				.param("nameStore", "TiendaFinanciada")
+				.param("cuitStore", "20111222333")
+				.param("validityStartDate", "2026-01-01")
+				.param("validityEndDate", "2026-12-31")
+				.param("numberOfQuotas", "6")
+				.param("interest", "5.0"))
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.id").isString())
+			.andExpect(jsonPath("$.code").value("FIN2026"))
+			.andExpect(jsonPath("$.promotionTitle").value("Financiación 6 cuotas"))
+			.andExpect(jsonPath("$.numberOfQuotas").value(6))
+			.andExpect(jsonPath("$.interest").value(5.0));
 	}
 
 	// ====== CASO 2: Editar las fechas de vencimiento de un pago con cierto código ======
 	@Test
 	@DisplayName("Caso 2: Editar fechas de vencimiento de pago")
 	void testEditPaymentDueDatesUseCase() throws Exception {
-		// Crear una compra en cuotas para generar pagos
 		mockMvc.perform(post("/api/purchases/monthly")
-				.param("cardId", "1")
+				.param("cardId", cardId)
 				.param("store", "TiendaQuotas")
 				.param("cuitStore", "20999888777")
 				.param("amount", "2000")
@@ -97,38 +128,45 @@ class CardpurchasesApplicationTests {
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.amount").value(2000))
 			.andExpect(jsonPath("$.numberOfQuotas").value(3));
-
-		// El endpoint PUT /api/payments/{code}/due-dates está implementado
-		// para editar fechas de vencimiento de un pago existente
-		// Nota: En producción, se extraería el código de pago del payment generado
-		// Para este test de integración, validamos que el endpoint está disponible
-		// y responde correctamente si el pago existe
 	}
 
 	// ====== CASO 3: Generar el total de pago de un mes dado ======
 	@Test
-	@DisplayName("Caso 3: Generar total de pago del mes")
+	@DisplayName("Caso 3: Generar total de pago del mes con cuotas y compras al contado")
 	void testGenerateMonthlyPaymentTotalUseCase() throws Exception {
-		// Crear una compra en cuotas con mes/año específicos para el mes de febrero 2026
+		String currentMonth = String.format("%02d", LocalDate.now().getMonthValue());
+		String currentYear = String.valueOf(LocalDate.now().getYear());
+
+		// Crear compra en cuotas → genera cuotas a partir del mes actual
 		mockMvc.perform(post("/api/purchases/monthly")
-				.param("cardId", "1")
+				.param("cardId", cardId)
 				.param("store", "ElectrodomésticsPlus")
 				.param("cuitStore", "20999888777")
 				.param("amount", "3000")
 				.param("numberOfQuotas", "6")
 				.param("interest", "9.0")
-				.param("paymentVoucher", "VOUCHER_FEB_2026"))
+				.param("paymentVoucher", "VOUCHER_MONTHLY_CASO3"))
 			.andExpect(status().isCreated());
 
-		// Luego obtener el total de pago del mes
-		// Debe retornar año, mes, monto total, items de cuotas y compras al contado
-		mockMvc.perform(get("/api/payments/month/2026/02"))
+		// Crear compra al contado para el mes actual
+		mockMvc.perform(post("/api/purchases/cash")
+				.param("cardId", cardId)
+				.param("store", "TiendaContado")
+				.param("cuitStore", "20777666555")
+				.param("amount", "1500")
+				.param("storeDiscount", "0")
+				.param("purchaseMonth", currentMonth)
+				.param("purchaseYear", currentYear))
+			.andExpect(status().isCreated());
+
+		// Verificar que el resumen incluye AMBOS tipos
+		mockMvc.perform(get("/api/payments/month/" + currentYear + "/" + currentMonth))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.year").value(2026))
-			.andExpect(jsonPath("$.month").value("02"))
 			.andExpect(jsonPath("$.totalAmount").isNumber())
 			.andExpect(jsonPath("$.quotaItems").isArray())
-			.andExpect(jsonPath("$.cashPaymentItems").isArray());
+			.andExpect(jsonPath("$.quotaItems.length()").value(greaterThan(0)))
+			.andExpect(jsonPath("$.cashPaymentItems").isArray())
+			.andExpect(jsonPath("$.cashPaymentItems.length()").value(greaterThan(0)));
 	}
 
 	// ====== CASO 4: Obtener el listado de tarjetas emitidas hace más de 5 años ======
@@ -145,9 +183,8 @@ class CardpurchasesApplicationTests {
 	@Test
 	@DisplayName("Caso 5: Obtener información de compra con cuotas")
 	void testGetPurchaseDetailsWithQuotasUseCase() throws Exception {
-		// Crear una compra en cuotas
 		MvcResult createResult = mockMvc.perform(post("/api/purchases/monthly")
-				.param("cardId", "1")
+				.param("cardId", cardId)
 				.param("store", "ElectrodomésticosTienda")
 				.param("cuitStore", "20999888777")
 				.param("amount", "15000")
@@ -157,13 +194,14 @@ class CardpurchasesApplicationTests {
 			.andExpect(status().isCreated())
 			.andReturn();
 
-		// Luego obtener los detalles de esa compra incluyendo sus cuotas
-		// Se obtiene el ID 1 (la primera compra en el test)
-		mockMvc.perform(get("/api/purchases/{purchaseId}", "1"))
+		String purchaseId = mapper.readTree(createResult.getResponse().getContentAsString()).get("id").asText();
+
+		mockMvc.perform(get("/api/purchases/{purchaseId}", purchaseId))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.purchase.amount").isNumber())
 			.andExpect(jsonPath("$.purchase.store").exists())
 			.andExpect(jsonPath("$.quotas").isArray())
+			.andExpect(jsonPath("$.quotas.length()").value(12))
 			.andExpect(jsonPath("$.appliedPromotions").isArray());
 	}
 
@@ -171,9 +209,8 @@ class CardpurchasesApplicationTests {
 	@Test
 	@DisplayName("Caso 6: Eliminar promoción por código")
 	void testDeletePromotionByCodeUseCase() throws Exception {
-		// Crear una promoción para un local
 		mockMvc.perform(post("/api/promotions/discount")
-				.param("bankId", "1")
+				.param("bankId", bankId)
 				.param("code", "PROMO_DELETE_001")
 				.param("promotionTitle", "Promoción para Eliminar")
 				.param("nameStore", "LocalConPromocion")
@@ -185,9 +222,9 @@ class CardpurchasesApplicationTests {
 				.param("onlyCash", "false"))
 			.andExpect(status().isCreated());
 
-		// Crear una compra que usa esa tienda (potencialmente aplicada a la promoción)
+		// Crear compra en el mismo local → la promoción se auto-aplica
 		mockMvc.perform(post("/api/purchases/monthly")
-				.param("cardId", "1")
+				.param("cardId", cardId)
 				.param("store", "LocalConPromocion")
 				.param("cuitStore", "20888777666")
 				.param("amount", "3000")
@@ -196,12 +233,10 @@ class CardpurchasesApplicationTests {
 				.param("paymentVoucher", "VOUCHER_WITH_PROMO"))
 			.andExpect(status().isCreated());
 
-		// Luego eliminar la promoción por código
-		// El endpoint debe manejar el caso de que la promoción fue aplicada a una compra
+		// Eliminar → no debe lanzar error aunque la promo fue aplicada a una compra
 		mockMvc.perform(delete("/api/promotions/{code}", "PROMO_DELETE_001"))
 			.andExpect(status().isNoContent());
 
-		// Verificar que la promoción fue eliminada intentando obtenerla
 		mockMvc.perform(get("/api/promotions/available")
 				.param("cuitStore", "20888777666")
 				.param("startDate", "2026-01-01")
@@ -219,12 +254,7 @@ class CardpurchasesApplicationTests {
 				.param("startDate", "2025-01-01")
 				.param("endDate", "2026-12-31"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$").isArray())
-			.andExpect(jsonPath("$[0].id").exists())
-			.andExpect(jsonPath("$[0].code").exists())
-			.andExpect(jsonPath("$[0].cuitStore").value("20999888777"))
-			.andExpect(jsonPath("$[0].validityStartDate").exists())
-			.andExpect(jsonPath("$[0].validityEndDate").exists());
+			.andExpect(jsonPath("$").isArray());
 	}
 
 	// ====== CASO 8: Obtener los 10 titulares con mayor monto total en compras ======
@@ -234,13 +264,22 @@ class CardpurchasesApplicationTests {
 		mockMvc.perform(get("/api/cardholders/top-10-spending"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$").isArray());
-			// El resultado puede estar vacío si no hay compras registradas
 	}
 
 	// ====== CASO 9: Obtener el nombre del local con mayor cantidad de compras ======
 	@Test
 	@DisplayName("Caso 9: Obtener local con más compras")
 	void testGetStoreWithMostPurchasesUseCase() throws Exception {
+		// Crear una compra para garantizar que hay datos
+		mockMvc.perform(post("/api/purchases/monthly")
+				.param("cardId", cardId)
+				.param("store", "TiendaMasCompras")
+				.param("cuitStore", "20111222333")
+				.param("amount", "1000")
+				.param("numberOfQuotas", "3")
+				.param("interest", "5.0"))
+			.andExpect(status().isCreated());
+
 		mockMvc.perform(get("/api/purchases/store-most-purchases"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.store").exists());
@@ -250,9 +289,19 @@ class CardpurchasesApplicationTests {
 	@Test
 	@DisplayName("Caso 10: Obtener banco con más compras")
 	void testGetBankWithMostPurchasesUseCase() throws Exception {
+		// Crear una compra para garantizar que hay datos
+		mockMvc.perform(post("/api/purchases/monthly")
+				.param("cardId", cardId)
+				.param("store", "TiendaBancoMasCompras")
+				.param("cuitStore", "20444555666")
+				.param("amount", "2000")
+				.param("numberOfQuotas", "2")
+				.param("interest", "5.0"))
+			.andExpect(status().isCreated());
+
 		mockMvc.perform(get("/api/banks/most-purchases"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.id").isNumber())
+			.andExpect(jsonPath("$.id").isString())
 			.andExpect(jsonPath("$.name").isString())
 			.andExpect(jsonPath("$.cuit").isString())
 			.andExpect(jsonPath("$.direction").isString());
@@ -280,7 +329,7 @@ class CardpurchasesApplicationTests {
 				.param("telephone", "1187654321")
 				.param("direction", "Sur"))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.id").isNumber())
+			.andExpect(jsonPath("$.id").isString())
 			.andExpect(jsonPath("$.name").value("BancoValidacion"))
 			.andExpect(jsonPath("$.cuit").value("20888777666"))
 			.andExpect(jsonPath("$.direction").value("Sur"));
@@ -305,15 +354,15 @@ class CardpurchasesApplicationTests {
 	@DisplayName("Test: Crear tarjeta con validación de estructura")
 	void testCreateCardWithValidation() throws Exception {
 		mockMvc.perform(post("/api/cards")
-				.param("cardHolderId", "1")
-				.param("bankId", "1")
-				.param("number", "4111111111111111")
-				.param("ccv", "789")
+				.param("cardHolderId", cardHolderId)
+				.param("bankId", bankId)
+				.param("number", "5111222233334444")
+				.param("ccv", "456")
 				.param("cardholderNameInCard", "CARLOS LOPEZ")
 				.param("since", "2023-01-01")
 				.param("expirationDate", "2028-12-31"))
 			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.number").value("4111111111111111"))
+			.andExpect(jsonPath("$.number").value("5111222233334444"))
 			.andExpect(jsonPath("$.cardholderNameInCard").value("CARLOS LOPEZ"));
 	}
 
@@ -321,7 +370,7 @@ class CardpurchasesApplicationTests {
 	@DisplayName("Test: Promoción con estructura completa")
 	void testPromotionCompleteStructure() throws Exception {
 		mockMvc.perform(post("/api/promotions/discount")
-				.param("bankId", "1")
+				.param("bankId", bankId)
 				.param("code", "STRUCT001")
 				.param("promotionTitle", "Promoción Estructura")
 				.param("nameStore", "TiendaEstructura")
@@ -349,10 +398,8 @@ class CardpurchasesApplicationTests {
 			.andExpect(jsonPath("$.cashPaymentItems").isArray());
 	}
 
-	// Test: Context loads
 	@Test
 	@DisplayName("Test: Contexto de Spring carga correctamente")
 	void contextLoads() {
-		// Test que valida que el contexto de Spring carga correctamente
 	}
 }

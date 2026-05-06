@@ -1,6 +1,4 @@
 package com.tpdbd.cardpurchases.model;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.annotation.Id;
@@ -25,8 +23,12 @@ public abstract class Purchase {
     
     private Float amount;
 
-    
+
     private Float finalAmount;
+
+    private String purchaseMonth;
+
+    private String purchaseYear;
 
     // Relación muchos a uno: Muchas compras usan UNA tarjeta
     @DBRef
@@ -62,4 +64,8 @@ public abstract class Purchase {
     public void setValidPromotion(List<Promotion> validPromotion) { this.validPromotion = validPromotion; }
     public List<Quota> getQuotas() { return this.quotas; }
     public void setQuotas(List<Quota> quotas) { this.quotas = quotas; }
+    public String getPurchaseMonth() { return this.purchaseMonth; }
+    public void setPurchaseMonth(String purchaseMonth) { this.purchaseMonth = purchaseMonth; }
+    public String getPurchaseYear() { return this.purchaseYear; }
+    public void setPurchaseYear(String purchaseYear) { this.purchaseYear = purchaseYear; }
 }

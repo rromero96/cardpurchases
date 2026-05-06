@@ -1,43 +1,36 @@
 package com.tpdbd.cardpurchases.services;
 
 import com.tpdbd.cardpurchases.model.CardHolder;
-import com.tpdbd.cardpurchases.model.Card;
-import com.tpdbd.cardpurchases.model.Purchase;
 import com.tpdbd.cardpurchases.repositories.CardHolderRepository;
-import com.tpdbd.cardpurchases.repositories.CardRepository;
-import com.tpdbd.cardpurchases.repositories.PurchaseRepository;
 
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class CardHolderService {
 
     private final CardHolderRepository cardHolderRepository;
-    private final CardRepository cardRepository;
-    private final PurchaseRepository purchaseRepository;
-
+    private final MongoTemplate mongoTemplate;
 
     @Autowired
-    public CardHolderService(CardHolderRepository cardHolderRepository,
-                             CardRepository cardRepository,
-                             PurchaseRepository purchaseRepository) {
+    public CardHolderService(CardHolderRepository cardHolderRepository, MongoTemplate mongoTemplate) {
         this.cardHolderRepository = cardHolderRepository;
-        this.cardRepository = cardRepository;
-        this.purchaseRepository = purchaseRepository;
+        this.mongoTemplate = mongoTemplate;
     }
-    /**
-     * Crear un nuevo titular de tarjeta
-     */
+
     @Transactional
     public CardHolder createCardHolder(String completeName, String dni, String cuil,
                                        String address, String telephone, LocalDate entryDate) {
-
         CardHolder cardHolder = new CardHolder();
         cardHolder.setCompleteName(completeName);
         cardHolder.setDni(dni);
@@ -45,28 +38,33 @@ public class CardHolderService {
         cardHolder.setAddress(address);
         cardHolder.setTelephone(telephone);
         cardHolder.setEntryDate(entryDate);
-
         return cardHolderRepository.save(cardHolder);
     }
 
     /**
-     * Obtener top 10 titulares con mayor monto total en compras
+     * Top 10 titulares por gasto total usando MongoDB aggregation pipeline.
+     * Evita traer todas las compras a memoria (purchaseRepository.findAll()).
      */
     public List<CardHolder> getTop10CardholdersBySpending() {
-        // Obtener todas las compras
-        List<Purchase> allPurchases = purchaseRepository.findAll();
+        Aggregation agg = Aggregation.newAggregation(
+            Aggregation.lookup("cards", "card.$id", "_id", "cardDoc"),
+            Aggregation.unwind("cardDoc"),
+            Aggregation.group("cardDoc.cardholder.$id").sum("finalAmount").as("totalSpent"),
+            Aggregation.sort(Sort.Direction.DESC, "totalSpent"),
+            Aggregation.limit(10)
+        );
 
-        // Agrupar por cardholder y calcular suma total
-        return allPurchases.stream()
-                .collect(Collectors.groupingBy(
-                        purchase -> purchase.getCard().getCardholder(),
-                        Collectors.summingDouble(Purchase::getAmount)
-                ))
-                .entrySet()
-                .stream()
-                .sorted((a, b) -> Double.compare(b.getValue(), a.getValue()))
-                .limit(10)
-                .map(entry -> entry.getKey())
-                .collect(Collectors.toList());
+        List<String> ids = mongoTemplate
+            .aggregate(agg, "purchases", Document.class)
+            .getMappedResults()
+            .stream()
+            .map(d -> d.get("_id").toString())
+            .collect(Collectors.toList());
+
+        return ids.stream()
+            .map(cardHolderRepository::findById)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
     }
 }

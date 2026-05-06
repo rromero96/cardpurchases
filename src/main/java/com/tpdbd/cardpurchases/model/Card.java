@@ -1,7 +1,5 @@
 package com.tpdbd.cardpurchases.model;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.*;
 @Document(collection = "cards")
@@ -24,9 +22,6 @@ public class Card {
     // Relación muchos a uno: Muchas tarjetas pertenecen a UN banco
     @DBRef
     private Bank bank;
-    // Relación uno a muchos: Una tarjeta puede tener muchas compras
-    @DBRef
-    private List<Purchase> purchases;
 
     public Card() {}
     public String getId() {
@@ -78,10 +73,4 @@ public class Card {
         this.bank = bank;
     }
 
-    public List<Purchase> getPurchases() {
-        return this.purchases;
-    }
-    public void setPurchases(List<Purchase> purchases) {
-        this.purchases = purchases;
-    }
 }

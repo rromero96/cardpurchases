@@ -28,10 +28,6 @@ public class CardHolder {
     
     private LocalDate entryDate;
 
-    // Relación uno a muchos: Un titular tiene muchas tarjetas
-    @DBRef
-    @JsonIgnore
-    private List<Card> cards;
 
     public CardHolder() {}
     public String getId() {
@@ -90,11 +86,4 @@ public class CardHolder {
         this.entryDate = entryDate;
     }
 
-    public List<Card> getCards() {
-        return this.cards;
-    }
-
-    public void setCards(List<Card> cards) {
-        this.cards = cards;
-    }
 }
